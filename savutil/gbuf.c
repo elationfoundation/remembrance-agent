@@ -40,13 +40,13 @@ USA.
 
 /* Return the minimum of n and strlen(n).  This won't read beyond n characters of string s,
    so if s isn't null terminated it won't matter so long as it's malloc'ed up to n. */
-size_t strnlen (char *s, size_t n)
-{
-  int i;
-  if (s == NULL) return(0);
-  for (i=0; ((i<n) && (s[i] != '\0')); i++);
-  return(i);
-}
+/* size_t strnlen (char *s, size_t n) */
+/* { */
+/*   int i; */
+/*   if (s == NULL) return(0); */
+/*   for (i=0; ((i<n) && (s[i] != '\0')); i++); */
+/*   return(i); */
+/* } */
 
 /* Create a new Growbuffer, point gbuf to it. */
 void init_GBuffer(GBuffer *gbuf)
@@ -55,7 +55,7 @@ void init_GBuffer(GBuffer *gbuf)
   gbuf->value = (char *)malloc(GBUFF_INIT_SIZE * sizeof(char));
   gbuf->value[0] = '\0';
   gbuf->tail = 0;
-} 
+}
 
 /* Destructor for a growbuffer */
 void free_GBuffer(GBuffer *gbuf)
@@ -69,7 +69,7 @@ void free_GBuffer(GBuffer *gbuf)
 /* return copy of char * part of GrowBuffer */
 char *strcast_GBuffer(GBuffer *src) {
   char *retvalue;
-  
+
   if (src == NULL) {
     return(NULL);
   }
@@ -112,7 +112,7 @@ void strncpy_GBuffer(GBuffer *dest, char *src, size_t n)
 }
 
 /* Chop out the first n characters of a growbuffer.  So
-   strnchop_GBuffer(gbuf, 4) changes gbuf from "Boogie Woogie" to 
+   strnchop_GBuffer(gbuf, 4) changes gbuf from "Boogie Woogie" to
    "ie Woogie". */
 void strnchop_GBuffer(GBuffer *dest, size_t n)
 {
@@ -127,6 +127,3 @@ void strnchop_GBuffer(GBuffer *dest, size_t n)
     free(temp);
   }
 }
-
-
-
