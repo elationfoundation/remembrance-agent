@@ -1,4 +1,4 @@
-/* imain.c: This is the main for Savant 2.0, now with regexp parsing.  It 
+/* imain.c: This is the main for Savant 2.0, now with regexp parsing.  It
    does all the indexing for savant. */
 
 /*
@@ -61,7 +61,7 @@ UserVars Config;       /* Initialized in load_config */
    and exit.  */
 
 
-void instructions(void)  
+void instructions(void)
 {
   fprintf(stderr,"\nusage:\n");
   fprintf(stderr,"  ra-index [--version] [-v] [-d] [-s] <base-dir> <sources> [-e <excludees>]\n");
@@ -89,7 +89,7 @@ char **source_from_file(char *filename)
   else
     strncpy(file_path, filename, PATHLEN);
   file_path[PATHLEN-1] = '\0';
-  
+
   if((ifp = fopen(file_path,"r")) == NULL) {
     SavantError(ENOENT, "source_file: Unable to open file containing source filenames");
   }
@@ -102,68 +102,70 @@ char **source_from_file(char *filename)
 
   source_sizes = (int *) malloc (nsources * (sizeof(int)));
 
-  for (i = 0; i<(nsources+1); i++) 
+  for (i = 0; i<(nsources+1); i++)
     result[i] = NULL;
-  
-  
+
+
   ifp = fopen(filename, "r");
-  
+
   c = getc(ifp);
-  
+
   while ((signed char) c != EOF){
     b = c;
     c = getc(ifp);
     if (isspace(c)) {
       if(isspace(b)) {
-	continue;
+        continue;
       }
       else {
-	source_sizes[j++] = ++i;
-	i = 0;
+        source_sizes[j++] = ++i;
+        i = 0;
       }
     }
     else {
       i++;
     }
   }
-  
+
   for (i=0; i<nsources; i++) {
     result[i] = (char *) malloc (source_sizes[i]*(sizeof(char)) + 1);
   }
 
   free(source_sizes);
-  
+
   rewind(ifp);
   c = getc(ifp);
   i=j=0;
-  
+
   while ((signed char)c != EOF){
     b = c;
     c = getc(ifp);
     if (isspace(c)||(c == '\n')) {
       if(isspace(b)||(b == '\n')) {
-	continue;
+        continue;
       }
       else {
-	result[j][i++] = b;
-	result[j++][i] = '\0';
-	i = 0;
+        result[j][i++] = b;
+        result[j++][i] = '\0';
+        i = 0;
       }
     }
     else {
       if (isspace(b)) {
-	continue;
+        continue;
       }
       else {
-	result[j][i++] = b;
+        result[j][i++] = b;
       }
     }
   }
-  
+
   return result;
 }
 
-/* see /usr/src/linux-2.0.34/include/asm-i386/errno.h for errnos in linux */
+/**
+   see /usr/src/linux-2.0.34/include/asm-i386/errno.h for errnos in linux
+*/
 void IndexError (int errcode, char *errstring)
 {
   fprintf(stderr, "%s\n", errstring);
@@ -175,7 +177,7 @@ int source_count(char *filename)
   FILE *ifp;
   char c;
   int i = 0;
-  
+
   ifp = fopen(filename, "r");
 
   c = getc(ifp);
@@ -183,10 +185,10 @@ int source_count(char *filename)
   while ((signed char) c != EOF){
     if ((c=='\n')||(isspace(c))){
       while (isspace(c)) {
-	c = getc(ifp);
-	}
+        c = getc(ifp);
+        }
       i++;
-    }  
+    }
     c = getc(ifp);
   }
 
@@ -196,7 +198,7 @@ int source_count(char *filename)
 
 
 
-/* 
+/**
 The main path is one long calling chain till you get to
 vectorize_buffer, which actually does the culling of stop-words,
 stemming of words, and encoding into a DV_Tree (document vector tree).
@@ -211,19 +213,19 @@ Who calls who (templates / with .savantrc method)
    main: handle all the command-line args and initialize variables
 -> pre_process:  process directories specified on command line
 -> file_search:  recurse through directories, ignoring excludees and symbolic links
--> process_file: recognize a file type (ignore binaries & rejected filetypes), and set processed structure 
-                 for all the documents and their fields within this file (start & end locations) by calling 
-                 match_pattern 
+-> process_file: recognize a file type (ignore binaries & rejected filetypes), and set processed structure
+                 for all the documents and their fields within this file (start & end locations) by calling
+                 match_pattern
 -> savant_index: reopen the file, call do_vector on the each document specified in the processed structure,
                  and compute the title info (do_title).
--> do_vector:    Called once per document.  Calls vectorize_file on each field type, merges them together, 
-                 write some info to disk (DLOFF_FILE, WMAP_FILE, and BIAS_FILE), and call save_dv.  If 
-                 windowing is turned on, do the vectorize_file and save_dv multiple times, once for each 
+-> do_vector:    Called once per document.  Calls vectorize_file on each field type, merges them together,
+                 write some info to disk (DLOFF_FILE, WMAP_FILE, and BIAS_FILE), and call save_dv.  If
+                 windowing is turned on, do the vectorize_file and save_dv multiple times, once for each
                  window.
--> vectorize_file: actually read from the file (based on offsets provided by do_vector), and call 
-                   vectorize_buffer on the read-in text.  Also keep track of where the windows are 
+-> vectorize_file: actually read from the file (based on offsets provided by do_vector), and call
+                   vectorize_buffer on the read-in text.  Also keep track of where the windows are
                    (in next_window) so we can be in the right place for next time.
--> vectorize_buffer: actually encode the words, throw out stop words, stem, etc.  Call dvtree_increment to 
+-> vectorize_buffer: actually encode the words, throw out stop words, stem, etc.  Call dvtree_increment to
                      store the code in the DV_Tree "tree" for this vector, and return that tree.
 
 
@@ -245,15 +247,15 @@ main: handle all the command-line args and initialize variables
                                (e.g. from wordvecs to the sorted list of wordvecs).
      at the end, for each field-type we've got lying around:
         -> index-finalize-write: write out the various kinds of fields we've got.
-        
+
 */
 int main(int argc,
-	  char *argv[])
+          char *argv[])
 {
   List_of_Filenames *lof = NULL;
   List_of_Filenames *current_filename = NULL;
   int i, j, sources_done=0, nsources, fsources_done=0, start=0, end=0, numDocsInFile=0, totalNumDocs=0;
-  char *config_name=NULL, *input_filename = NULL, **sources, **excludees, *db_name=NULL, 
+  char *config_name=NULL, *input_filename = NULL, **sources, **excludees, *db_name=NULL,
     db_dir[PATH_MAX+2], *short_name, ***file_sources;
   FILE *file;
   General_Template *template = NULL;
@@ -262,7 +264,7 @@ int main(int argc,
   Doc_Info docInfo;                /* info on each document as it's processed */
   GBuffer *restDocumentText;    /* Remaining text in document */
   GBuffer *temp;
-  
+
   /* Initialize stuff (damn but I want a real OO language!) */
   docInfo.documentText = (GBuffer *)malloc(sizeof(GBuffer));
   init_GBuffer(docInfo.documentText);
@@ -280,7 +282,7 @@ int main(int argc,
   excludees = (char **) malloc (argc*sizeof(char *));
   file_sources = (char ***) malloc (argc*(sizeof(char **)));
 
-  for (i=0; i<argc; i++) 
+  for (i=0; i<argc; i++)
     sources[i] = excludees[i] = NULL;
 
   for (i=0; i<argc; i++)
@@ -288,37 +290,37 @@ int main(int argc,
 
   j = 0;
   for (i=1; i < argc; i++)
-    if (argv[i][0] == '-') 
+    if (argv[i][0] == '-')
       switch (argv[i][1]) {
       case 'c':
-	if (config_name == NULL) {
-	  config_name = argv[++i];
-	}
-	else {
-	  instructions();
+        if (config_name == NULL) {
+          config_name = argv[++i];
+        }
+        else {
+          instructions();
           SavantError(EINVAL, "");
-	  /*exit(-1);*/
-	}
-	break;
+          /*exit(-1);*/
+        }
+        break;
       case 's':
         SavantFollowSymlinks = 1;
         break;
       case 'f':
-	if(sources_done == 0) {
-	  sources_done = 1;
-	  j = 0;
-	}
-	else {
-	  instructions();
-	  SavantError(EINVAL, "");
-	}
-	break;
+        if(sources_done == 0) {
+          sources_done = 1;
+          j = 0;
+        }
+        else {
+          instructions();
+          SavantError(EINVAL, "");
+        }
+        break;
       case 'v':
-	SavantVerbose = 1;
-	break;
+        SavantVerbose = 1;
+        break;
       case 'd':
-	SavantDebug = 1;
-	break;
+        SavantDebug = 1;
+        break;
       case '-':
         if (strcmp(argv[i], "--version")==0) {
           printf("%s\n", REMEM_VERSION);
@@ -326,51 +328,51 @@ int main(int argc,
         SavantError(EINVAL, "");
         break;
       case 'e':
-	if(fsources_done == 0 ) {
-	  sources_done = 1;
-	  fsources_done = 1;
-	  j = 0;
-	}
-	else {
-	  instructions();
-	  SavantError(EINVAL, "");
-	  /*exit(-1);*/
-	}
-	break;
+        if(fsources_done == 0 ) {
+          sources_done = 1;
+          fsources_done = 1;
+          j = 0;
+        }
+        else {
+          instructions();
+          SavantError(EINVAL, "");
+          /*exit(-1);*/
+        }
+        break;
       default:
-	instructions();
-	SavantError(EINVAL, "");
-	/*exit(-1);*/
+        instructions();
+        SavantError(EINVAL, "");
+        /*exit(-1);*/
       }
     else if(db_name == NULL) { /* do the database name */
       db_name = argv[i];
-    } 
+    }
     else {
       /* do sources and excludees */
       if (sources_done == 0) {
-	sources[j++] = strdup(argv[i]);
+        sources[j++] = strdup(argv[i]);
       }
       else {
-	if (fsources_done == 0){
-	  file_sources[j++] = source_from_file(argv[i]);
-	}
-	else {
-	  excludees[j++] = argv[i];
-	}
+        if (fsources_done == 0){
+          file_sources[j++] = source_from_file(argv[i]);
+        }
+        else {
+          excludees[j++] = argv[i];
+        }
       }
     }
-  
+
   if(SavantVerbose || SavantDebug) {
     puts(REMEM_VERSION);
   }
-  
+
   if (db_name == NULL) {
     instructions();
     SavantError(EINVAL, "");
     /*exit(-1);*/
   }
-  
-  if(db_name[0] != '/') {  
+
+  if(db_name[0] != '/') {
     /* if not absolute pathname, tack it onto cwd */
     /* (is there a better way to do this?) */
 #ifdef HAVE_GETCWD
@@ -382,27 +384,27 @@ int main(int argc,
     strncat(db_dir, db_name, PATH_MAX + 1 - strlen(db_dir));
   }
   else { /* use the absolute pathname */
-    strncpy(db_dir, db_name, PATH_MAX + 2);    
+    strncpy(db_dir, db_name, PATH_MAX + 2);
   }
   if (db_dir[strlen(db_dir)-1] != '/')
     strcat(db_dir,"/");
 
   db_dir[PATH_MAX+1] = '\0';
-  
+
   load_config ();
- 
+
   /* this is where the real work gets done */
 
   get_and_append_filenames(sources, excludees, &lof);   /* sources are disk sources */
   /* [GET THE FILE SOURCES HERE TOO] */
 
   for (current_filename = lof; current_filename != NULL; current_filename = current_filename->next) {
-    if ((strncmp(current_filename->filename, "http://", 7) == 0) ||  
-        (strncmp(current_filename->filename, "ftp://", 6) == 0)) 
+    if ((strncmp(current_filename->filename, "http://", 7) == 0) ||
+        (strncmp(current_filename->filename, "ftp://", 6) == 0))
       short_name = current_filename->filename;
-    else 
+    else
       short_name = strrchr(current_filename->filename, '/') + 1;
-    
+
     if((file = fopen(current_filename->filename,"r")) == NULL) {
       if(SavantVerbose) {
         printf("%s:  ", short_name);
@@ -428,7 +430,7 @@ int main(int argc,
         continue;
       }
     }
-    
+
     if(SavantVerbose) {
       printf("  %s:", short_name);
       for(i=strlen(short_name); i<30; i++) {
@@ -472,7 +474,7 @@ int main(int argc,
       find_fields(&docInfo, template);
       filter_fields(&docInfo, template);
       parse_fields(&docInfo, template);
-      
+
       if (SavantDebug) {
         printf("\n-------------------------NEXT DOC-------------------------\n");
         print_doc_info(&docInfo, template);
@@ -512,12 +514,12 @@ int main(int argc,
   free_GBuffer(restDocumentText);
   free(restDocumentText);
   for(i=0; file_sources[i] != NULL; i++) {   /* file_sources are files containing a list of sources */
-    get_and_append_filenames(file_sources[i], excludees, &lof);  
+    get_and_append_filenames(file_sources[i], excludees, &lof);
     free(file_sources[i]);
   }
 
   free(file_sources);
 
   SavantError(0, "");
-  
+
 }

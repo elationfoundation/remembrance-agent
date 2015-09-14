@@ -46,7 +46,8 @@ USA.
 #include "conftemplates.h"
 #include <math.h>
 
-/* update_sims_word spec: All the update_sims_word routines take:
+/**
+   update_sims_word spec: All the update_sims_word routines take:
        void *word: a single element of the query vector (e.g. a single word)
 
        int weight: a weight for this word in the query (e.g. the term frequency)
@@ -63,13 +64,15 @@ USA.
 
        Retrieval_Database_Info *rdi: info about the index database.
        Currently this struct contains the total number of documents
-       and the path to the index database directory. */
+       and the path to the index database directory.
+*/
 
 /* TEXT */
-/* File format (comment copied from indexers-text.c):
+/**
+   File format (comment copied from indexers-text.c):
    File format:
       Format for WORDVEC_FILE: doc/weight pairs for the wordcode specified
-      in the wordvec offset file.  No wordcode is listed here since it's 
+      in the wordvec offset file.  No wordcode is listed here since it's
       redundant.  Docnums are listed in reverse docnum order, 'cause that's
       easier to deal with in the indexing.
 
@@ -98,9 +101,9 @@ USA.
       document length (number words), in docnum order followed by
       fieldtype order.  Note that there might be missing document
       numbers or fields, since this is only for docs and fields with
-      text-type.  
+      text-type.
 
-      (DB_UINT)    (DB_UINT)       (DB_UINT)       
+      (DB_UINT)    (DB_UINT)       (DB_UINT)
       DOCNUM-1,    FIELDTYPE-1,    LENGTH-OF-DOC-1-FIELD-1,
       DOCNUM-1,    FIELDTYPE-2,    LENGTH-OF-DOC-1-FIELD-2,
       DOCNUM-2,    FIELDTYPE-1,    LENGTH-OF-DOC-2-FIELD-1,
@@ -108,18 +111,19 @@ USA.
   */
 
 
-/* Do a binary search of WVOFF_FILE.  Assume word is between wvoff_low
-   and wvoff_high (offsets into the file) if it exists at all.  Return
-   either:
+/**
+   \brief Do a binary search of WVOFF_FILE
 
-       0: The word is not in the file.
-       1: The word has been found, and wvoff_low points to it.  wvoff_high points to one line higher.
-          (this may be > end of file, so make sure the caller checks this) 
+   Do a binary search of WVOFF_FILE.  Assume word is between wvoff_low
+   and wvoff_high (offsets into the file) if it exists at all.
 
-   This should really be rewritten to be generalized (i.e. include the
-   length of a line and a pointer to the comparison program ala qsort.  */
+   \return Return either:
+      - 0: The word is not in the file.
+      - 1: The word has been found, and wvoff_low points to it.  wvoff_high points to one line higher. (this may be > end of file, so make sure the caller checks this)
 
-int do_binary_search_wvoff (long *off_low_ptr, 
+   \todo This should really be rewritten to be generalized (i.e. include the length of a line and a pointer to the comparison program ala qsort.
+*/
+int do_binary_search_wvoff (long *off_low_ptr,
                             long *off_high_ptr,
                             Wordcode word,
                             FILE *WVOFF_FILE,
@@ -170,7 +174,7 @@ int do_binary_search_wvoff (long *off_low_ptr,
         gotItp = 1;
       }
       else if (cmp < 0)                   /* We shot low */
-        wvoff_low = wvoff_point; 
+        wvoff_low = wvoff_point;
       else                          /* We shot high */
         wvoff_high = wvoff_point;
     }
@@ -182,9 +186,11 @@ int do_binary_search_wvoff (long *off_low_ptr,
 }
 
 
-/* Given a word, fill in an array of docnum, weight pairs associated
+/**
+   Given a word, fill in an array of docnum, weight pairs associated
    with it, and return the number of docs in the array.  The array
-   will be freed by whoever calls us. */
+   will be freed by whoever calls us.
+*/
 int text_documents_containing_this_word (DB_UINT **docsAndWeights,
                                          Wordcode word,
                                          FILE *WVOFF_FILE,
@@ -222,17 +228,19 @@ int text_documents_containing_this_word (DB_UINT **docsAndWeights,
     }
     *docsAndWeights = (DB_UINT *)malloc((offset_high - offset_low));
     fseek(WORDVEC_FILE, offset_low, SEEK_SET);
-    fread_big(*docsAndWeights, sizeof(DB_UINT), 
+    fread_big(*docsAndWeights, sizeof(DB_UINT),
               (size_t)((offset_high - offset_low) / sizeof(DB_UINT)), WORDVEC_FILE);
     return ((int)((offset_high - offset_low) / (2.0 * sizeof(DB_UINT))));
   }
 }
 
 
-/* Load all the text doc info into memory for quick access later.
-   This might give us a single-time speed hit on the first query due
-   to disk access. */
+/**
+   \brief Load all the text doc info into memory for quick access later.
 
+   This might give us a single-time speed hit on the first query due
+   to disk access.
+*/
 Text_Doc_Info *load_text_doc_info (char *db_dir, int number_documents_total) {
   FILE *DOCLEN_FILE = NULL;
   DB_UINT *buffer, D, F;
@@ -246,7 +254,7 @@ Text_Doc_Info *load_text_doc_info (char *db_dir, int number_documents_total) {
   numentries = (int)(filelen / (sizeof(DB_INT) * 3));
   buffer = (DB_UINT *)malloc(filelen);
   tdi = (Text_Doc_Info *)malloc(sizeof(Text_Doc_Info));
-  tdi->document_lengths = 
+  tdi->document_lengths =
     (DB_UINT *)calloc(number_documents_total * MAX_NUMBER_FIELDS, sizeof(DB_UINT));
   tdi->avg_document_length =
     (DB_UINT *)calloc(MAX_NUMBER_FIELDS, sizeof(DB_UINT));
@@ -273,8 +281,10 @@ Text_Doc_Info *load_text_doc_info (char *db_dir, int number_documents_total) {
   return(tdi);
 }
 
-/* Algorithm:
-   Find docs & wieghts associated with this word through WVOFF_FILE 
+/**
+   Algorithm:
+
+   \brief Find docs & wieghts associated with this word through WVOFF_FILE
    and WORDVEC_FILE.
 
    The weighting algorithm is essentially the one used in the City
@@ -283,13 +293,13 @@ Text_Doc_Info *load_text_doc_info (char *db_dir, int number_documents_total) {
    Conference (TREC-3).  Edited by D.K. Harman.  Gaithersburg, MD:
    NIST, 1995
 
-   Additional similarity  =   W * tf (k1 + 1) (k3 + 1) qtf 
+   Additional similarity  =   W * tf (k1 + 1) (k3 + 1) qtf
                               ------------------------------
                                    (K + tf) (k3 + qtf)
 
    Where:
      W = log(N - n + 0.5) - log(n + 0.5)
-     N = total number of documents 
+     N = total number of documents
      n = number of documents containing this word
      K = k1 ((1 - b) + b * dl / avdl)
      dl = document length (number of words)
@@ -299,15 +309,14 @@ Text_Doc_Info *load_text_doc_info (char *db_dir, int number_documents_total) {
      k1 = a knob: high k1 means tf is more important ( == 1.2 in City's TREC-6)
      k3 = a knob: high k3 means qtf is more important (== anywhere from 0 to 1000 in TREC-6)
      b = a knob: high b means penalize big documents more (== 0.75 in TREC-6)
-   
-*/
 
-/* We've eliminated query-term-frequency as a seperate argument, and
+
+ We've eliminated query-term-frequency as a seperate argument, and
    instead have nextword return ALL info that might be needed by the
    particular algorithm (as a void *).  E.g. query term weight, number
    of terms in the query, or whatever.  This also lets, e.g., a
-   different algorithm use floats instead of ints for their qtf.  */
-
+   different algorithm use floats instead of ints for their qtf.
+*/
 void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word_Info) */
                                  Remem_Hash_Table *all_sims,
                                  void *fieldvoid,    /* This field (type Field) */
@@ -349,23 +358,23 @@ void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word
     Kmax = (float)(k1 * (1.0 - b));
     tfmax = 1;    /* Assume this is a good max -- we pin it if we go over 1.0 similarity anyway */
     qtfmax = 1;   /* Assume this is a good max -- we pin it if we go over 1.0 similarity anyway */
-    partial_normalization_term = (float)((Wmax * tfmax * (k1 + 1) * (k3 + 1) * qtfmax) 
+    partial_normalization_term = (float)((Wmax * tfmax * (k1 + 1) * (k3 + 1) * qtfmax)
                                          / (float)((Kmax + tfmax) * (k3 + qtfmax) * fudgefactor));
   }
 
-  if (tdi == NULL) 
+  if (tdi == NULL)
     tdi = load_text_doc_info(rdi->db_dir, rdi->number_documents_total);
-  if (WVOFF_FILE == NULL) 
+  if (WVOFF_FILE == NULL)
     WVOFF_FILE = open_or_die(rdi->db_dir, WVOFF_FNAME, "r");
-  if (WORDVEC_FILE == NULL) 
+  if (WORDVEC_FILE == NULL)
     WORDVEC_FILE = open_or_die(rdi->db_dir, WORDVEC_FNAME, "r");
 
   /* For this word, find all the docs that contain it */
-  numDocsForThisWord = 
+  numDocsForThisWord =
     text_documents_containing_this_word(&docsAndWeights,
-					((Text_Word_Info *)wordvoid)->word,
-					WVOFF_FILE,
-					WORDVEC_FILE);
+                                        ((Text_Word_Info *)wordvoid)->word,
+                                        WVOFF_FILE,
+                                        WORDVEC_FILE);
   if (numDocsForThisWord != 0) {  /* Only do something if there were any hits */
     n = numDocsForThisWord;
     avdl = tdi->avg_document_length[((Field *)fieldvoid)->typenum];
@@ -377,7 +386,7 @@ void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word
       qtf = ((Text_Word_Info *)wordvoid)->weight;
 
       /* query_length = number of unique non-stopwords total */
-      query_length = ((Text_Word_Info *)wordvoid)->length; 
+      query_length = ((Text_Word_Info *)wordvoid)->length;
 
       tf = docsAndWeights[i * 2 + 1];
       dl = tdi->document_lengths[(docnum * MAX_NUMBER_FIELDS) + ((Field *)fieldvoid)->typenum];
@@ -386,7 +395,7 @@ void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word
 
       /* this * query_length is serious black magic.  There's no
          real reason to think that this will give a normalized value across
-         several queries, which is what we want with thresholds. 
+         several queries, which is what we want with thresholds.
 
          What we actually want is a normalized query that corelates
          well with how useful people find a suggestion. It makes sense
@@ -403,24 +412,25 @@ void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word
       /* Get doc's sim if there, add to hash if not */
       sim_element = (Doc_Sim *)rememHashGet(docnum, all_sims);
       if (sim_element == NULL) {
-	sim_element = (Doc_Sim *)calloc(1,sizeof(Doc_Sim));
-	sim_element->docnum = docnum;
-	rememHashPut(docnum, sim_element, all_sims);
+        sim_element = (Doc_Sim *)calloc(1,sizeof(Doc_Sim));
+        sim_element->docnum = docnum;
+        rememHashPut(docnum, sim_element, all_sims);
       }
 
-      add_additional_to_doc_sim (sim_element, additionalSim, 
-				 ((Text_Word_Info *)wordvoid)->printword);
+      add_additional_to_doc_sim (sim_element, additionalSim,
+                                 ((Text_Word_Info *)wordvoid)->printword);
     }
   }
   free(docsAndWeights);
 
 }
 
-/* Algorithm:
-   Find docs & wieghts associated with this word through WVOFF_FILE 
-   and WORDVEC_FILE.
+/**
+   Algorithm:
 
-   There are several TFiDF algorithms, so this has a few choices.  The three main 
+   \brief Find docs & wieghts associated with this word through WVOFF_FILE and WORDVEC_FILE.
+
+   There are several TFiDF algorithms, so this has a few choices.  The three main
    components are:
          ntf: A normalized term frequency for the word within a particular document
          IDF: An inverse document frequency weighting, which favors rare words
@@ -463,19 +473,19 @@ void update_sims_word_text_tfidf(void *wordvoid,     /* The word (type Text_Word
 
   N = rdi->number_documents_total;
 
-  if (tdi == NULL) 
+  if (tdi == NULL)
     tdi = load_text_doc_info(rdi->db_dir, rdi->number_documents_total);
-  if (WVOFF_FILE == NULL) 
+  if (WVOFF_FILE == NULL)
     WVOFF_FILE = open_or_die(rdi->db_dir, WVOFF_FNAME, "r");
-  if (WORDVEC_FILE == NULL) 
+  if (WORDVEC_FILE == NULL)
     WORDVEC_FILE = open_or_die(rdi->db_dir, WORDVEC_FNAME, "r");
 
   /* For this word, find all the docs that contain it */
-  numDocsForThisWord = 
+  numDocsForThisWord =
     text_documents_containing_this_word(&docsAndWeights,
-					((Text_Word_Info *)wordvoid)->word,
-					WVOFF_FILE,
-					WORDVEC_FILE);
+                                        ((Text_Word_Info *)wordvoid)->word,
+                                        WVOFF_FILE,
+                                        WORDVEC_FILE);
   if (numDocsForThisWord != 0) {  /* Only do something if there were any hits */
     n = numDocsForThisWord;
     if (n < N) {              /* Sanity check */
@@ -487,7 +497,7 @@ void update_sims_word_text_tfidf(void *wordvoid,     /* The word (type Text_Word
 
         if (dl > 2)                    /* More sanity check */
           ntf = log(tf + 1) / log(dl);
-        else 
+        else
           ntf = tf;
 
         additionalSim = (float)(ntf * IDF / fudge_factor);
@@ -506,5 +516,3 @@ void update_sims_word_text_tfidf(void *wordvoid,     /* The word (type Text_Word
   }
   free(docsAndWeights);
 }
-
-

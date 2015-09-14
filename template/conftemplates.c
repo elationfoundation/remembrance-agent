@@ -42,17 +42,20 @@ USA.
 #define atfn(arg1, arg2, arg3, arg4, arg5, arg6) add_template_field_name(current_template, arg1, arg2, arg3, arg4, arg5, arg6)
 #define caf(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) create_and_add_field(All_Fields, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 #define attl add_template_to_list(All_General_Templates, current_template);
-/* Global variables
+/**
+  Global variables
 
    All_General_Templates is *the* List_of_General_Templates which contains all the
-   templates in the system.  
+   templates in the system.
 
    All_Fields contain all the fields in the system.
 */
 List_of_General_Templates *All_General_Templates;
 Array_of_Field_Types *All_Fields;
 
-/* Pull a field out by name instead of index */
+/**
+   Pull a field out by name instead of index
+*/
 Field *get_field_from_allfields(Array_of_Field_Types *aft, char *pname) {
   int i;
   for (i=0; i < aft->num_fields; i++) {
@@ -63,8 +66,10 @@ Field *get_field_from_allfields(Array_of_Field_Types *aft, char *pname) {
   return(NULL);
 }
 
-/* Create a new template, with an empty Template_Field_Info array.  
-   Make sure to strcpy all strings into malloced buffers */
+/**
+   Create a new template, with an empty Template_Field_Info array.
+   Make sure to strcpy all strings into malloced buffers
+*/
 General_Template *create_template (char *printname, char *recognize, char *delimiter, enum Action_Types action,
                                    enum Template_Types templatetype) {
   int i;
@@ -74,7 +79,7 @@ General_Template *create_template (char *printname, char *recognize, char *delim
 
   result->printname = strdup(printname);
 
-  if (recognize != NULL) 
+  if (recognize != NULL)
     result->recognize = strdup(recognize);
   else
     result->recognize = NULL;
@@ -96,7 +101,9 @@ General_Template *create_template (char *printname, char *recognize, char *delim
 }
 
 
-/* Print configuration (for debugging) */
+/**
+   Print configuration (for debugging)
+*/
 void print_config () {
   int i;
   List_of_General_Templates *t;
@@ -134,15 +141,17 @@ void print_template_field_info(Template_Field_Info *tfi) {
 }
 
 
-/* This returns a template field info, given a template to search
-and the printname for that template.  Returns NULL if not found. */
-Template_Field_Info *tfi_from_name (General_Template *template, 
-				      char *fieldname) 
+/**
+   This returns a template field info, given a template to search
+and the printname for that template.  Returns NULL if not found.
+*/
+Template_Field_Info *tfi_from_name (General_Template *template,
+                                      char *fieldname)
 {
   char errorstring[256];
   int i=0;
   Template_Field_Info *current_info;
-  while ((template->fields[i] != NULL) && 
+  while ((template->fields[i] != NULL) &&
          (strcmp(template->fields[i]->field->printname, fieldname))) {
     i++;
 
@@ -154,11 +163,12 @@ Template_Field_Info *tfi_from_name (General_Template *template,
   return(template->fields[i]);
 }
 
-/* This returns a field, given an array to search and the printname
+/**
+   This returns a field, given an array to search and the printname
 for that template.  Returns NULL if not found.  Pulls fields from the
-global "All_Fields". */
-
-Field *field_from_name (char *fieldname) 
+global "All_Fields".
+*/
+Field *field_from_name (char *fieldname)
 {
   int i;
   for (i=0; i < All_Fields->num_fields; i++) {
@@ -171,13 +181,15 @@ Field *field_from_name (char *fieldname)
 
 
 
-/* Add a new template field info line, given a field name 
-   it's just a wrapper, really*/
+/**
+   Add a new template field info line, given a field name
+   it's just a wrapper, really
+*/
 void add_template_field_name (General_Template *template,
-			      char *fieldname,
-                              char *id_regexp, 
-                              int id_index, 
-                              char **filter_regexp, 
+                              char *fieldname,
+                              char *id_regexp,
+                              int id_index,
+                              char **filter_regexp,
                               int bias,
                               int title_length)
 {
@@ -190,15 +202,17 @@ void add_template_field_name (General_Template *template,
   }
   add_template_field_info (template,
                            field,
-			   id_regexp, id_index, filter_regexp, bias, title_length);
+                           id_regexp, id_index, filter_regexp, bias, title_length);
 }
 
-/* Add a new Template_Field_Info line to a template */
-void add_template_field_info (General_Template *template, 
-                              Field *field,   
-                              char *i_regexp, 
-                              int i_index, 
-                              char **f_regexp, 
+/**
+   Add a new Template_Field_Info line to a template
+*/
+void add_template_field_info (General_Template *template,
+                              Field *field,
+                              char *i_regexp,
+                              int i_index,
+                              char **f_regexp,
                               int b,
                               int title_length)
 {
@@ -215,7 +229,7 @@ void add_template_field_info (General_Template *template,
       SavantError (EOVERFLOW, errorstring);
     }
   }
-  
+
   current_info = (Template_Field_Info *) malloc(sizeof (Template_Field_Info));
 
   current_info->field = field;
@@ -228,7 +242,9 @@ void add_template_field_info (General_Template *template,
   template->fields[i] = current_info;
 }
 
-/* Take a template and tack it onto the end of a pre-existing list of templates*/
+/**
+   Take a template and tack it onto the end of a pre-existing list of templates
+*/
 void add_template_to_list(List_of_General_Templates *list, General_Template *template)
 {
   List_of_General_Templates *tail;
@@ -250,7 +266,9 @@ void add_template_to_list(List_of_General_Templates *list, General_Template *tem
 }
 
 
-/* creates the array of filter regexps. fills it with nulls*/
+/**
+   creates the array of filter regexps. fills it with nulls
+*/
 char **create_filter_regexp()
 {
   char **result;
@@ -280,8 +298,8 @@ void add_filter_regexp(char **filter_array, char *filter_regexp)
   }
 
   filter_array[i] = strdup(filter_regexp);
-}    
-  
+}
+
 void free_template_field_info(Template_Field_Info *current_info )
 {
   int i;
@@ -292,11 +310,13 @@ void free_template_field_info(Template_Field_Info *current_info )
   }
 }
 
-/* Free memory pointed to by template (including all sub-fields and strings in the data struct) */
+/**
+   Free memory pointed to by template (including all sub-fields and strings in the data struct)
+*/
 void free_template (General_Template *template)
 {
   int i;
-  
+
   free(template->printname);
   free(template->recognize);
   free(template->delimiter);
@@ -310,28 +330,30 @@ void free_template (General_Template *template)
 
 /* conftemplates.h says that parser wants a pointer to self as well.
    Note: self (in parser) is a pointer to the field being parsed.  We need it 'cause
-   the encoder needs to know the field's typenum 
+   the encoder needs to know the field's typenum
 
    [Isn't taking in a pointer to the Array_of_Field_Types kind
    of redundant, since won't AoFT be global anyway? -- event]
 
 */
 
-/* Create a field and add it to fieldArray, choosing the next fieldnum from the array 
-   and updating the Array's num_fields */
+/**
+   Create a field and add it to fieldArray, choosing the next fieldnum from the array
+   and updating the Array's num_fields
+*/
 void create_and_add_field (Array_of_Field_Types *fieldArray,
-                           char *printname, 
-			   enum Title_Defaults_Type titleDefault,
-                           void *(*parser)(char *fielddata, void *self, DB_UINT docnum), 
-                           GBuffer *(*deparser)(void *parseddata, void *self), 
+                           char *printname,
+                           enum Title_Defaults_Type titleDefault,
+                           void *(*parser)(char *fielddata, void *self, DB_UINT docnum),
+                           GBuffer *(*deparser)(void *parseddata, void *self),
                            void (*index_store)(void *parseddata,/* Whatever is returned by parser */
                                                 char *dbdir,     /* database directory */
-                                                int last_write_p),/* last_write_p == 1 if this is the end 
-                                                                     and we just want to finalize the write */ 
-                           void *(*nextword)(void *parseddata, 
+                                                int last_write_p),/* last_write_p == 1 if this is the end
+                                                                     and we just want to finalize the write */
+                           void *(*nextword)(void *parseddata,
                                              int reset_p),
-                           void (*update_sims_word)(void *word, 
-                                                    Remem_Hash_Table *all_sims, 
+                           void (*update_sims_word)(void *word,
+                                                    Remem_Hash_Table *all_sims,
                                                     void *self,
                                                     Retrieval_Database_Info *rdi),
                            void (*cleanup_parsed)(void *parseddata))
@@ -364,7 +386,7 @@ void create_and_add_field (Array_of_Field_Types *fieldArray,
 List_of_General_Templates *create_template_list()
 {
   List_of_General_Templates *result;
-  
+
   result = (List_of_General_Templates *) malloc (sizeof(List_of_General_Templates));
   result->template = NULL;
   result->next = NULL;
@@ -388,8 +410,10 @@ Array_of_Field_Types *create_field_array()
 }
 
 
-/* Create the templates, and point the global variable All_General_Templates at it.
-   This procedure replaces the work that used to be done by loading .savantrc */
+/**
+   Create the templates, and point the global variable All_General_Templates at it.
+   This procedure replaces the work that used to be done by loading .savantrc
+*/
 void load_config()
 {
   int i;
@@ -425,78 +449,78 @@ void load_config()
          Parse a field from an indexed document or from a query.  Turn it into machine readable format.
 
          fielddata: a string of data for a field as it comes from the document (after filtering).  E.g. the raw text
-	            from the body of an email message.
-	 self:      actually of type (Field *).  This can be used to encode different fields differently, or ignored.  E.g.
-	            in text we encode the top 6 bits as a typenum, so we don't compare BODY text with SUBJECT text.
-	 docnum:    The document number.  This is a serial number, one per doc.
+                    from the body of an email message.
+         self:      actually of type (Field *).  This can be used to encode different fields differently, or ignored.  E.g.
+                    in text we encode the top 6 bits as a typenum, so we don't compare BODY text with SUBJECT text.
+         docnum:    The document number.  This is a serial number, one per doc.
 
          RETURNS:   the parser returns a void *, which contains some machine readable structure used by deparser, index_store,
                     nextword, and cleanup_parsed.
 
 ------------------------
-     deparser: GBuffer *deparser (void *parsedata, void *self) 
+     deparser: GBuffer *deparser (void *parsedata, void *self)
          Take field data output from the parser and turn it into printabe text (for debugging / feedback).
 
          parsedata: a pointer to parsed data.  This is of the type returned by parser.
-	 self:      actually of type (Field *).  This is the field of this data (and can be ignored if not needed).
+         self:      actually of type (Field *).  This is the field of this data (and can be ignored if not needed).
 
-	 RETURNS:   a GBuffer (growable string type) containing human-readable text representing this parsed field data.
-	            This is mainly used for debugging strings (printed with the -d option).
+         RETURNS:   a GBuffer (growable string type) containing human-readable text representing this parsed field data.
+                    This is mainly used for debugging strings (printed with the -d option).
 
 ------------------------
     index_store: void index_store (void *parsedata, char *dbdir, int last_write_p)
          Take field data output from the parser and store it to disk.
 
          parsedata:    a pointer to parsed data.  This is of the type returned by parser, and contains the info to be indexed.
-	 dbdir:        a string containing the fully expanded directory name of the index files.  This is the directory where all
-	               the files should be written.  Temporary scratch files can be written here as well, though they should be 
-		       deleted after the final write.
-	 last_write_p: this is set to 1 if this is the final write (allowing you to close files, merge checkpoint files, delete
-	               scratch files, etc).
+         dbdir:        a string containing the fully expanded directory name of the index files.  This is the directory where all
+                       the files should be written.  Temporary scratch files can be written here as well, though they should be
+                       deleted after the final write.
+         last_write_p: this is set to 1 if this is the final write (allowing you to close files, merge checkpoint files, delete
+                       scratch files, etc).
 
-	 RETURNS:      nothing.  However, this function should write this field info to disk in whatever format is most suited
-	               for fast later retrieval.
+         RETURNS:      nothing.  However, this function should write this field info to disk in whatever format is most suited
+                       for fast later retrieval.
 
 ------------------------
      nextword: void *nextword (void *parsedata, int reset_p)
          An iterator: Take field data output from the parser and return the next "word" from the parsed output.
-	 Word is loosly defined as a single element, e.g. a single word, GPS location, date, person's name, etc.
-	 nextword is only called on a query field during retrieval, not on indexed document fields.
+         Word is loosly defined as a single element, e.g. a single word, GPS location, date, person's name, etc.
+         nextword is only called on a query field during retrieval, not on indexed document fields.
 
-         parsedata:    a pointer to parsed data.  This is of the type returned by parser. 
-	 reset_p:      if reset_p == 1, start with the first word of this parsed data.  Otherwise, return the next one.
-	               nextword is responsible for keeping it's own place (via static memory, presumably).  
-		       Yes, it's icky, but it works.
+         parsedata:    a pointer to parsed data.  This is of the type returned by parser.
+         reset_p:      if reset_p == 1, start with the first word of this parsed data.  Otherwise, return the next one.
+                       nextword is responsible for keeping it's own place (via static memory, presumably).
+                       Yes, it's icky, but it works.
 
-	 RETURNS:      The word type includes any info that might be needed by the retrieval system, e.g. word weight, 
-	               machine readable version of the word, normalization info, etc.  The word might also contain a 
-		       human-readable version of the word, for filling into the top contributors keyword list by 
-		       update_sims_word.  The return value is used by update_sims_word during retrieval.  Return NULL 
+         RETURNS:      The word type includes any info that might be needed by the retrieval system, e.g. word weight,
+                       machine readable version of the word, normalization info, etc.  The word might also contain a
+                       human-readable version of the word, for filling into the top contributors keyword list by
+                       update_sims_word.  The return value is used by update_sims_word during retrieval.  Return NULL
                        when there are no more "words."
 
 ------------------------
       update_sims_word: void update_sims_word (void *word, Remem_Hash_Table *all_sims, void *field, Retrieval_Database_Info *rdi)
          A proceedure that takes a word at a time and updates (adds to) an array of document similarities.  This proceedure
-	 can be any algorithm so long as it can handle updating a document similarity one word at a time, without seeing all
-	 the other words.  (This is for the interests of speed.  If you actually need global knowledge, like say the length of
-	 a query or document for normalization, you can squirrel it away either in the index files format for this type or in
-	 the value returned by nextword.)  Called during query retrieval, not indexing.
+         can be any algorithm so long as it can handle updating a document similarity one word at a time, without seeing all
+         the other words.  (This is for the interests of speed.  If you actually need global knowledge, like say the length of
+         a query or document for normalization, you can squirrel it away either in the index files format for this type or in
+         the value returned by nextword.)  Called during query retrieval, not indexing.
          update_sims_word also needs to update the Top_Contributors list, which contains the similarity and printname of each
          word that contributed the most to choosing this document.
 
-	 word:     the single word that is potentially adding weight to a document.  Of the type returned by nextword.
-	 all_sims: an array of similarities, indexed by docnum.  Similarities include an array of "top contributors" to 
-	           a document being chosen (used for user feedback of why this document was chosen).
-	 field:    actually of type (Field *).  This is the field of this data (and can be ignored if not needed).
-	           This might be useful to grab other function pointers. 
-	 rdi:      Document info that might be useful to an information-retrieval algorithm.  Things like total number
-	           of documents plus the expanded path for the index files so they can be opened.
+         word:     the single word that is potentially adding weight to a document.  Of the type returned by nextword.
+         all_sims: an array of similarities, indexed by docnum.  Similarities include an array of "top contributors" to
+                   a document being chosen (used for user feedback of why this document was chosen).
+         field:    actually of type (Field *).  This is the field of this data (and can be ignored if not needed).
+                   This might be useful to grab other function pointers.
+         rdi:      Document info that might be useful to an information-retrieval algorithm.  Things like total number
+                   of documents plus the expanded path for the index files so they can be opened.
 
 ------------------------
        cleanup_parsed: void cleanup_parsed (void *parseddata)
          Free all the memory allocated by the parser routine.
-	 
-	 parsedata: a pointer to parsed data.  This is of the type returned by parser.
+
+         parsedata: a pointer to parsed data.  This is of the type returned by parser.
 */
   caf("BODY", BLANK_TITLE, &parse_text, &deparse_text, &index_store_text, &nextword_text, &update_sims_word_text_okapi, &free_parsed_text);
 
@@ -506,7 +530,7 @@ void load_config()
 
 /*  caf("DATE", MODTIME_TITLE, &parse_date, &deparse_date, &index_store_date, &nextword_date, NULL, &free_parsed_date);*/
 /*  caf("DATE", MODTIME_TITLE, NULL, NULL, NULL, NULL, NULL, NULL); */
-  caf("DATE", BLANK_TITLE, NULL, NULL, NULL, NULL, NULL, NULL); 
+  caf("DATE", BLANK_TITLE, NULL, NULL, NULL, NULL, NULL, NULL);
   caf("TIME", MODTIME_TITLE, NULL, NULL, NULL, NULL, NULL, NULL);
   caf("DAY", BLANK_TITLE, NULL, NULL, NULL, NULL, NULL, NULL);
   caf("SUBJECT", FILENAME_TITLE, &parse_text, &deparse_text, &index_store_text, &nextword_text, &update_sims_word_text_okapi, &free_parsed_text);
@@ -515,13 +539,13 @@ void load_config()
   /* Make a nice alias for the actual array of fields */
   fields = All_Fields->field;
 
-  /* 
+  /*
      Template definition:
 
 
      current_template = create_template(<name>,
                                         <recognition regex>,
-                                        <document delimiter>, 
+                                        <document delimiter>,
                                         <REJECT_ACTION | INDEX_ACTION>,
                                         <INDEX_TYPE | RETRIEVE_TYPE>);
 
@@ -542,17 +566,17 @@ void load_config()
      attl;
 
      ... next template
-     current_template = create_template(<name>, 
-                                        <recognition regex>, 
+     current_template = create_template(<name>,
+                                        <recognition regex>,
                                         <document delimiter>,
                                         <REJECT_ACTION | INDEX_ACTION>,
                                         <INDEX_TYPE | RETRIEVE_TYPE>);
 
      ... etc ...
   */
-  
+
   /* the following comment might be useful in some location or other */
-  /*   Field      id_regexp          id_index  filter_regexp  bias*/ 
+  /*   Field      id_regexp          id_index  filter_regexp  bias*/
 
   /* Make the templates*/
 
@@ -560,7 +584,7 @@ void load_config()
   /*       RMAIL template        */
   /*******************************/
   current_template = create_template("RMAIL",
-                                     "BABYL OPTIONS", 
+                                     "BABYL OPTIONS",
                                      "(^|\n)",
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
@@ -570,16 +594,16 @@ void load_config()
   /* Filters for email bodies */
 
   /* Included headers in forwarded email */
-  /* Note the {0,100} at the end -- this sanity check keeps pcre from blowing up if, say, 
+  /* Note the {0,100} at the end -- this sanity check keeps pcre from blowing up if, say,
      you're given an email body with thousands of lines of code all indented so it thinks
      it's all one header */
   add_filter_regexp(email_body_filter_regexps, "(^|\n)(\\ |\\t|\\>)*[a-zA-Z]+[a-zA-Z\\-\\;]*:([^\n]*)(\n(\\ |\\t|\\>)([^\n]*)){0,100}");
 
-  /* Signature files.  
+  /* Signature files.
      The standard is "\n-- \n". I'm including forwards-indented versions as well, plus some
-     non-standards like a line of 5+ non-text, followed by 1-5 lines whatever, 
+     non-standards like a line of 5+ non-text, followed by 1-5 lines whatever,
      followed by another line of non-text */
-  
+
   add_filter_regexp(email_body_filter_regexps, "(^|\n)--( ){0,1}\n([^\n]*(\n|$)){1,8}([^\n]*$)");
   add_filter_regexp(email_body_filter_regexps, "(^|\n)[>\\s]+--( ){0,1}\n([^\n]*(\n|$)){1,8}([^\n]*$)");
   add_filter_regexp(email_body_filter_regexps, "(^|\n)[^a-zA-Z0-9\n]{5,}\n([^\n]*(\n|$)){1,8}([^a-zA-Z0-9\n]{5,}\n)");
@@ -598,9 +622,9 @@ void load_config()
   /* -----------94C4424FBB52619DF028A003 */
   /* and                                 */
   /* *** EOOH ***                        */
-  add_filter_regexp(email_body_filter_regexps, 
+  add_filter_regexp(email_body_filter_regexps,
       "(^|\n)(\\ |\\t|\\>)*(\\-|\\*)+([\\w|\\ |\\t]*)([^a-zA-Z0-9\n])*?\n");
-  add_filter_regexp(email_body_filter_regexps, 
+  add_filter_regexp(email_body_filter_regexps,
       "(^|\n)(\\ |\\t|\\>)*(\\-|\\*|\\+|\\=){3,}([\\w|\\ |\\t]*)([a-zA-Z0-9])*[\\ |\\t|\\-|\\*|\\+|\\=]*\n");
 
 /* And any other sort of headers that start:
@@ -630,7 +654,7 @@ void load_config()
 
   current_template = create_template("Globe",
                                      "^Title: ",
-				     NULL,
+                                     NULL,
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -662,8 +686,8 @@ void load_config()
   /*        Tech article HTML template        */
   /********************************************/
   current_template = create_template("tech_article",
-				     "<META RATYPE=\"Tech article\">\n",
-				     NULL,
+                                     "<META RATYPE=\"Tech article\">\n",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -698,7 +722,7 @@ void load_config()
   add_filter_regexp(current_filter_regexps, "<!--.*?-->");             /* Comments */
   add_filter_regexp(current_filter_regexps, "<[^>]*>");                /* Tags */
   add_filter_regexp(current_filter_regexps, "&(\\x23\\d+|\\w+);");     /* &nbsp; and the like */
-  
+
   /* We can't rely on valid HTML with a body tag, so just do the whole thing and throw out the tags */
   atfn("BODY", "(.*)", 1, current_filter_regexps, 1, 0);
   attl;
@@ -709,8 +733,8 @@ void load_config()
   /*        HTML template        */
   /*******************************/
   current_template = create_template("HTML",
-				     "<title>|<TITLE>|<html>|<HTML>|<a href=|<A HREF=|<p>|<P>",
-				     NULL,
+                                     "<title>|<TITLE>|<html>|<HTML>|<a href=|<A HREF=|<p>|<P>",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -718,7 +742,7 @@ void load_config()
   add_filter_regexp(html_filter_regexps, "<!--.*?-->");             /* Comments */
   add_filter_regexp(html_filter_regexps, "<[^>]*>");                /* Tags */
   add_filter_regexp(html_filter_regexps, "&(\\x23\\d+|\\w+);");     /* &nbsp; and the like */
-  
+
   add_filter_regexp(html_filter_regexps, "(^|\n)EMACS REMEMBRANCE QUERY MODE:.*?($|\n)");
   add_filter_regexp(html_filter_regexps, "(^|\n)WEBRA REMEMBRANCE QUERY MODE.*?($|\n)");
 
@@ -757,10 +781,10 @@ void load_config()
   /*       Athena Email template      */
   /************************************/
   current_template = create_template("athena_email",
-				     "Received: from",
-				     NULL,
-				     ACCEPT_ACTION,
-				     INDEX_TYPE);
+                                     "Received: from",
+                                     NULL,
+                                     ACCEPT_ACTION,
+                                     INDEX_TYPE);
 
   atfn("DATE", "\nDate: (.*?)(\\s*?)\n", 1, NULL, 1, 50);
   atfn("PERSON", "\nFrom:(.*?)\n", 1, NULL, 1, 50);
@@ -771,9 +795,9 @@ void load_config()
   /*******************************/
   /*       Jimminy template      */
   /*******************************/
-  current_template = create_template("Jimminy", 
-	                             "------------------------(^|\n)Jimminy-header <", 
-				     "(^|\n)Jimminy-header <", 
+  current_template = create_template("Jimminy",
+                                     "------------------------(^|\n)Jimminy-header <",
+                                     "(^|\n)Jimminy-header <",
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -793,8 +817,8 @@ void load_config()
   /*  Edupage Archive template   */
   /*******************************/
   current_template = create_template("Edupage-Archive",
-				     "<TITLE>Edupage|<TITLE>EDUCAUSE",
-				     "<A NAME=\\\".*?\\\">",
+                                     "<TITLE>Edupage|<TITLE>EDUCAUSE",
+                                     "<A NAME=\\\".*?\\\">",
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -817,7 +841,7 @@ void load_config()
 
   current_template = create_template("LaTeX",
                                      "\\\\documentstyle|\\\\documentclass",
-				     NULL,
+                                     NULL,
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -837,7 +861,7 @@ void load_config()
 
   current_template = create_template("INSPEC",
                                      "^<\\d+>\nAccession Number",
-				     "(^|\n)<\\d+>\n",
+                                     "(^|\n)<\\d+>\n",
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -859,7 +883,7 @@ void load_config()
 
   current_template = create_template("ACM",
                                      "^ACM Electronic Guide to Computing Literature April 1998\n\n",
-				     "(^|\n)Type: ",
+                                     "(^|\n)Type: ",
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -877,7 +901,7 @@ void load_config()
 
   current_template = create_template("PostScript",
                                      "^\\%\\!PS",
-				     NULL,
+                                     NULL,
                                      REJECT_ACTION,
                                      INDEX_TYPE);
   attl;
@@ -888,7 +912,7 @@ void load_config()
 
   current_template = create_template("FrameMaker",
                                      "^<MIFFile ",
-				     NULL,
+                                     NULL,
                                      REJECT_ACTION,
                                      INDEX_TYPE);
   attl;
@@ -899,7 +923,7 @@ void load_config()
 
   current_template = create_template("PDF",
                                      "^\\%PDF-",
-				     NULL,
+                                     NULL,
                                      REJECT_ACTION,
                                      INDEX_TYPE);
   attl;
@@ -910,7 +934,7 @@ void load_config()
 
   current_template = create_template("HQX",
                                      "^\\(This file must be converted with BinHex ",
-				     NULL,
+                                     NULL,
                                      REJECT_ACTION,
                                      INDEX_TYPE);
   attl;
@@ -921,7 +945,7 @@ void load_config()
 
   current_template = create_template("RCS-Control",
                                      "^head(.*?)\naccess(.*?)\n(.*)symbols(.*)\n",
-				     NULL,
+                                     NULL,
                                      REJECT_ACTION,
                                      INDEX_TYPE);
 
@@ -932,8 +956,8 @@ void load_config()
   /***************************/
 
   current_template = create_template("plain_text",
-				     ".",             /* Always recognize (default) */
-				     NULL,            /* No delimiter */
+                                     ".",             /* Always recognize (default) */
+                                     NULL,            /* No delimiter */
                                      ACCEPT_ACTION,
                                      INDEX_TYPE);
 
@@ -950,8 +974,8 @@ void load_config()
   /*********************************************/
 
   current_template = create_template("RmailorVMQuery",
-				     "^EMACS REMEMBRANCE QUERY MODE: (rmail|vm)",
-				     NULL,         
+                                     "^EMACS REMEMBRANCE QUERY MODE: (rmail|vm)",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -966,12 +990,12 @@ void load_config()
   /*********************************************/
 
   current_template = create_template("MailQuery",
-				     "^EMACS REMEMBRANCE QUERY MODE: mail",
-				     NULL,         
+                                     "^EMACS REMEMBRANCE QUERY MODE: mail",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
-  atfn("BODY", "(.*)", 1, email_body_filter_regexps, 4, 10);  
+  atfn("BODY", "(.*)", 1, email_body_filter_regexps, 4, 10);
   atfn("SUBJECT", "Subject:(.*?)\n", 1, email_subject_filter_regexps, 1, 50);
   atfn("DATE", "Date:(.*?)\n", 1, NULL, 1, 40);
 
@@ -987,8 +1011,8 @@ void load_config()
   /*********************************************/
 
   current_template = create_template("GnusQuery",
-				     "^EMACS REMEMBRANCE QUERY MODE: gnus",
-				     NULL,         
+                                     "^EMACS REMEMBRANCE QUERY MODE: gnus",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1002,8 +1026,8 @@ void load_config()
   /*    Webra HTML Query template      */
   /*************************************/
   current_template = create_template("WebraHTMLQuery",
-				     "^WEBRA REMEMBRANCE QUERY MODE",            
-				     NULL,
+                                     "^WEBRA REMEMBRANCE QUERY MODE",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1016,7 +1040,7 @@ void load_config()
   atfn("SUBJECT", "(<title>|<TITLE>|<h1>|<H1>|<h2>|<H2>)(.*?)(</title>|</TITLE>|</h1>|</H1>|</h2>|</H2>)", 2, current_filter_regexps, 1, 20);
 
   /* If there's a mailto, grab the email address.  Of course, we're running into an ontology
-     problem here -- person might mean email address, or it might mean a full name (like in 
+     problem here -- person might mean email address, or it might mean a full name (like in
      the INSPEC database).  If query and indexed file mismatch it doesn't work.  Proper thing
      to do is have a translator like with ZWrap -- I'm just punting. */
   atfn("PERSON", "(mailto:)(\\s*)([\\w\\.]*?)(@[^@\\s]*)", 3, NULL, 1, 10);
@@ -1025,7 +1049,7 @@ void load_config()
   /* As with email, body is more important than other fields because it's a fuzzier match.
      Subject is also not a real good match for web pages, as the title often is incomplete. */
   atfn("BODY", "(.*)", 1, html_filter_regexps, 5, 0);
-  
+
   attl;
 
 
@@ -1033,8 +1057,8 @@ void load_config()
   /*        HTML Query template        */
   /*************************************/
   current_template = create_template("HTMLQuery",
-				     "^EMACS REMEMBRANCE QUERY MODE: html-mode",            
-				     NULL,
+                                     "^EMACS REMEMBRANCE QUERY MODE: html-mode",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1042,7 +1066,7 @@ void load_config()
 
   /* We can't rely on valid HTML with a body tag, so just do the whole thing and throw out the tags */
   atfn("BODY", "(.*)", 1, html_filter_regexps, 1, 0);
-  
+
   attl;
 
 
@@ -1051,8 +1075,8 @@ void load_config()
   /************************************/
 
   current_template = create_template("LaTeXQuery",
-				     "^EMACS REMEMBRANCE QUERY MODE: latex-mode",            
-				     NULL,
+                                     "^EMACS REMEMBRANCE QUERY MODE: latex-mode",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1082,9 +1106,9 @@ void load_config()
   /*************************************/
   /*       Jimminy Query template      */
   /*************************************/
-  current_template = create_template("JimminyQuery", 
-	                             "^JIMMINY REMEMBRANCE QUERY MODE", 
-				     NULL,
+  current_template = create_template("JimminyQuery",
+                                     "^JIMMINY REMEMBRANCE QUERY MODE",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1100,15 +1124,15 @@ void load_config()
   atfn("DAY", "(^|\n)Jimminy-query-header <(.*?)\\|(.*?)\\|(.*?)\\|(.*?)>", 5, NULL, 1, 0);
   atfn("TIME", "(^|\n)Jimminy-query-header <(.*?)\\|(.*?)\\|(.*?)\\|(.*?)>", 5, NULL, 1, 0);
   atfn("BODY", "(.*)", 1, current_filter_regexps, 4, 20);
-  attl; 
+  attl;
 
 /* This is the old query format using just the normal jimminy header. Now if you're using
    Jimminy you should be using the special hacks that put the current physical context in
    a unique format, so it can be different than the header of whatever you're reading. */
 /*
-  current_template = create_template("JimminyQuery", 
-	                             "------------------------(^|\n)Jimminy-header <", 
-				     NULL,
+  current_template = create_template("JimminyQuery",
+                                     "------------------------(^|\n)Jimminy-header <",
+                                     NULL,
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1119,7 +1143,7 @@ void load_config()
   atfn("DAY", "(^|\n)Jimminy-header <(.*?)\\|(.*?)\\|(.*?)\\|(.*?)>", 5, NULL, 1, 0);
   atfn("TIME", "(^|\n)Jimminy-header <(.*?)\\|(.*?)\\|(.*?)\\|(.*?)>", 5, NULL, 1, 0);
   atfn("BODY", "(^|\n)Jimminy-header <(.*?)\\|(.*?)\\|(.*?)\\|(.*?)>(.*?)($|\nJimminy-header)", 6, NULL, 4, 20);
-  attl; 
+  attl;
 
 */
 
@@ -1128,8 +1152,8 @@ void load_config()
   /*            Emacs Manual Query             */
   /*********************************************/
   current_template = create_template("Emacs_Manual_Query",
-				     "^EMACS REMEMBRANCE QUERY MODE: remem-query-mode",            
-				     NULL,            /* No delimiter */
+                                     "^EMACS REMEMBRANCE QUERY MODE: remem-query-mode",
+                                     NULL,            /* No delimiter */
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1146,8 +1170,8 @@ void load_config()
   /*            Emacs Field Query              */
   /*********************************************/
   current_template = create_template("Emacs_Field_Query",
-				     "^EMACS REMEMBRANCE FIELD QUERY:",            
-				     NULL,            /* No delimiter */
+                                     "^EMACS REMEMBRANCE FIELD QUERY:",
+                                     NULL,            /* No delimiter */
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
@@ -1166,22 +1190,22 @@ void load_config()
   /*        Generic Emacs Text Query Template        */
   /***************************************************/
   current_template = create_template("Unknown_Emacs_Query",
-				     "^EMACS REMEMBRANCE QUERY MODE: ",            
-				     NULL,            /* No delimiter */
+                                     "^EMACS REMEMBRANCE QUERY MODE: ",
+                                     NULL,            /* No delimiter */
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
 
   current_filter_regexps = create_filter_regexp();
   add_filter_regexp(current_filter_regexps, "(^|\n)EMACS REMEMBRANCE QUERY MODE:.*?\n");
-  atfn("BODY", "(.*)", 1, current_filter_regexps, 4, 10);                  
+  atfn("BODY", "(.*)", 1, current_filter_regexps, 4, 10);
   attl;
 
   /*********************************************/
   /*        Generic Text Query Template        */
   /*********************************************/
   current_template = create_template("TextQuery",
-				     ".",             /* Always recognize (default) */
-				     NULL,            /* No delimiter */
+                                     ".",             /* Always recognize (default) */
+                                     NULL,            /* No delimiter */
                                      ACCEPT_ACTION,
                                      QUERY_TYPE);
   atfn("BODY", "(.*)", 1, NULL, 1, 10);

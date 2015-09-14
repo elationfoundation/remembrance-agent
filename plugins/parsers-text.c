@@ -46,7 +46,7 @@ USA.
 #include "stops.h"
 
 
-/*###################################################################### 
+/*######################################################################
    TEXT PARSING MODULES:
    modules for parsing english prose.
  ######################################################################*/
@@ -55,13 +55,15 @@ int upper=0,power=0,num_words=0;
 char **comm = NULL;
 
 int by_alpha(const void *in1,
-	     const void *in2)
+             const void *in2)
 {
   return(strcmp(*(char **)in1, *(char **)in2));
 }
 
-/* Do some preprocessing for stop words stuff (comm_local is the list of stop words,
-   from stops.h) */
+/**
+   Do some preprocessing for stop words stuff (comm_local is the list of stop words,
+   from stops.h)
+*/
 int core_comm_local(void)
 {
   comm = comm_local;
@@ -80,8 +82,10 @@ int core_comm_local(void)
   return(0);
 }
 
-/* Return 1 if the word is a common word (i.e. is in the stop-list), 0
-   otherwise */
+/**
+   Return 1 if the word is a common word (i.e. is in the stop-list), 0
+   otherwise
+*/
 int is_common(char *word)
 {
   int disp,loc,i,itr,step;
@@ -111,7 +115,8 @@ int is_common(char *word)
 
 
 unsigned int encode_char(unsigned char c) {
-/* return a 6-bit packed representation of a char:
+  /**
+     return a 6-bit packed representation of a char:
    a-z = 01-1A
    0-9 = 1B-24
    _   = 25
@@ -162,14 +167,15 @@ unsigned char decode_char (unsigned int code) {
 }
 
 
-/* encode_text_word: encode a normal english word into a packed, 3-byte format.
+/**
+   encode_text_word: encode a normal english word into a packed, 3-byte format.
    Encoding scheme:
-   
+
    EXTENDED ENCODING SYSTEM (3 unsigned ints):
-   
+
    In the 3-int system, each character is 6 bits, with the most significant 6-bits in the
    first int being the type field.  Bits wrap to the next byte, as follows:
-   
+
    tttttt 111111 222222 333333 444444 55 = 32 bits
    5555 666666 777777 888888 999999 0000
    00 111111 222222 333333 444444 555555 = 15 characters, 6-bits type
@@ -178,7 +184,7 @@ unsigned char decode_char (unsigned int code) {
    inserted into the template structure.  This means that different versions of Savant
    may be incompatible depending on what templates are added.
 */
-void encode_text_word(unsigned char *s, 
+void encode_text_word(unsigned char *s,
                       unsigned int * code,
                       DB_UINT field_type)
 {
@@ -199,12 +205,12 @@ void encode_text_word(unsigned char *s,
   code[0] = field_type << (sizeof(DB_UINT)*8 - 6);
 
   /* 12 bits into the code for the start of the next char */
-  offset = sizeof(DB_UINT)*8 - 6 - CHARACTER_ENCODE_WIDTH;   
+  offset = sizeof(DB_UINT)*8 - 6 - CHARACTER_ENCODE_WIDTH;
 
   i=0;
   for(j=0,endstr=0; (j<WORD_ENCODE_WIDTH); j++) {
     while((offset >= 0) && (!endstr)) {
-      if (!endstr && (s[i] == 0)) {  
+      if (!endstr && (s[i] == 0)) {
         endstr = 1;  /* at end of the string, don't add more to the code */
       }
       if (endstr == 0) {
@@ -227,7 +233,7 @@ void decode_text_word(unsigned int *code, char *str, char *fieldname)
   unsigned int d, carryoverd, type, mask;
 
   type = code[0] >> (sizeof(unsigned int)*8 - 6);
-  
+
   d = code[0] & 0x3f;
   j = 0;
   carryoverd = 0;
@@ -251,9 +257,11 @@ void decode_text_word(unsigned int *code, char *str, char *fieldname)
   strcat (str, fieldname);
 }
 
-/* comparison function for wordcodes */
+/**
+   comparison function for wordcodes
+*/
 int wordcode_cmp(Wordcode code1,
-		 Wordcode code2) /* compare func for qsort */
+                 Wordcode code2) /* compare func for qsort */
 {
   int j;
   for(j=0; j<WORD_ENCODE_WIDTH; j++) {
@@ -265,7 +273,9 @@ int wordcode_cmp(Wordcode code1,
   return 0;
 }
 
-/* copy function for wordcodes */
+/**
+   copy function for wordcodes
+*/
 int wordcode_cpy(Wordcode dest, Wordcode source)
 {
   int j;
@@ -274,7 +284,8 @@ int wordcode_cpy(Wordcode dest, Wordcode source)
   }
 }
 
-/* Add a wordcode to a DV_Tree
+/**
+   Add a wordcode to a DV_Tree
 
    NOTE: This assumes that we'll be adding a document at a time, and adding all words
    for a particular document at once.  If this isn't true, we'll need to actually scan
@@ -316,13 +327,13 @@ int dvtree_add_word(DV_Tree **treeptr,
     *treeptr = tree;
     return(sizeof(DV_Tree) + sizeof(Doc_List));
   }
-  
+
   /* If we've already got a match for this wordcode AND this doc, just
      increment the weight.  If we've got the wordcode but not the doc,
      prepend this document to the front.
 
      NOTE: This assumes that we'll be adding a document at a time, and adding
-     all words for a particular document at once.  If this isn't true, we'll 
+     all words for a particular document at once.  If this isn't true, we'll
      need to actually scan the whole doclist for a docvec node.  */
 
   cmp = wordcode_cmp(code, tree->wordcode);
@@ -333,9 +344,9 @@ int dvtree_add_word(DV_Tree **treeptr,
     }
     else {
 
-      /* Got the word but not doc, add the doc to list 
-	 This adds in reverse-doc order, 'cause it's easier. */
-      if ((doclist = (Doc_List *)malloc(sizeof(Doc_List))) == NULL) 
+      /* Got the word but not doc, add the doc to list
+         This adds in reverse-doc order, 'cause it's easier. */
+      if ((doclist = (Doc_List *)malloc(sizeof(Doc_List))) == NULL)
         SavantError(ENOMEM, "Unable to malloc doclist in parsers.c");
       doclist->docnum = docnum;
       doclist->weight = weight;
@@ -352,7 +363,8 @@ int dvtree_add_word(DV_Tree **treeptr,
   }
 }
 
-/* add_document_to_dvtree: merge the documentTree into target.
+/**
+   add_document_to_dvtree: merge the documentTree into target.
    documentTree is assumed to only contain a single document (one
    entry in the Doc_List per word) -- otherwise we'd have to do more
    checking and scanning.
@@ -365,10 +377,11 @@ int dvtree_add_word(DV_Tree **treeptr,
    documents in a linked list in parse_text, and only do the
    tree-search once instead of twice.  The downside is we'd have to
    malloc more memory, 'cause we'd have a list entry for every
-   occurence of a word whether it's duplicated or not. 
+   occurence of a word whether it's duplicated or not.
 
    Return the number of bytes added to target this round, so we can
-   keep track of memory usage.  (There really should be a better way.)  */
+   keep track of memory usage.  (There really should be a better way.)
+*/
 
 int add_document_to_dvtree (DV_Tree **target, DV_Tree *documentTree) {
   int mem = 0;    /* memory used */
@@ -384,10 +397,10 @@ int add_document_to_dvtree (DV_Tree **target, DV_Tree *documentTree) {
   }
 
   /* I'm now a leaf node, so add & free myself */
-  mem += dvtree_add_word(target, 
-                         documentTree->wordcode, 
+  mem += dvtree_add_word(target,
+                         documentTree->wordcode,
                          documentTree->printword,
-                         documentTree->documents->weight, 
+                         documentTree->documents->weight,
                          documentTree->documents->docnum);
 
 /* We used to free things here, but now we're freeing in a top-level call in main. */
@@ -395,16 +408,18 @@ int add_document_to_dvtree (DV_Tree **target, DV_Tree *documentTree) {
   free(documentTree);
 */
   return(mem);
-}  
+}
 
 /*###################################################################*/
 
-/* parse_text: Throws out stop words, stems remaining words, and
+/**
+   parse_text: Throws out stop words, stems remaining words, and
    returns a Text_Document_Field, which contains the field typenum,
    the length of this document, and a DV_Tree (DV_Tree = binary
    doc-vector tree sorted by word-code, with weights for this
    document). self is the field being parsed, which we need to figure
-   out the type number to encode in each word.  */
+   out the type number to encode in each word.
+*/
 
 void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
   static char word[16], printword[PRINTWORD_LENGTH];
@@ -415,7 +430,7 @@ void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
   int i, j;
   DB_UINT numwords = 0;  /* number unique words in this text */
   DB_UINT typenum;
-  int punct=0, alpha = 0, midpunct=0;  
+  int punct=0, alpha = 0, midpunct=0;
 
   typenum = ((Field *)self)->typenum;
 
@@ -424,16 +439,16 @@ void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
 
  /* quit at the end of the fielddata, and don't go over the max number of words */
   while((*bufptr != '\0') &&
-        ((numwords < MAX_NUMBER_WORDS_PER_INDEXED_FIELD) || 
+        ((numwords < MAX_NUMBER_WORDS_PER_INDEXED_FIELD) ||
          !MAX_NUMBER_WORDS_PER_INDEXED_FIELD)) {
     i = 0;  /* index into word, to keep from going over */
     j = 0;  /* number of characters in this word in the fielddata */
-    punct = 0;  /* flag for whether we've got punctuation or other 
-		   non-alnum chars (or -,_) in there */
+    punct = 0;  /* flag for whether we've got punctuation or other
+                   non-alnum chars (or -,_) in there */
     midpunct = 0; /* flag for whether we have punctuation in the middle of
                      the word (alphanumerics on either side of non "-" or "_" punctuation */
-    alpha = 0; /* flag for if the text has letters (i.e. it's a number, 
-		  not a phone number / date) */
+    alpha = 0; /* flag for if the text has letters (i.e. it's a number,
+                  not a phone number / date) */
 
     while(isspace(*bufptr) && (*bufptr != '\0')) {
       /* skip space at the beginning */
@@ -447,11 +462,11 @@ void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
           isalnum(*bufptr)) {
         midpunct = 1;
       }
-      if (!punct && 
-	  !isalnum(*bufptr) && 
-	  (*bufptr != '_') && 
-	  (*bufptr != '-') && 
-	  !isspace(*(bufptr + 1))) {
+      if (!punct &&
+          !isalnum(*bufptr) &&
+          (*bufptr != '_') &&
+          (*bufptr != '-') &&
+          !isspace(*(bufptr + 1))) {
         punct = 1;
       }
       if (isalpha(*bufptr) || (*bufptr == '_') || (*bufptr == '-')) {
@@ -481,7 +496,7 @@ void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
       }
       word[i] = '\0';
     }
-    
+
     if(!is_common(word)) { /* skip "stop" words */
       strncpy(printword, word, PRINTWORD_LENGTH);
       Stem(word);
@@ -509,14 +524,16 @@ void *parse_text (char *fielddata, void *self, DB_UINT docnum) {
 }
 
 
-/* parse_text_nostopstem: Returns a Text_Document_Field, which
+/**
+   parse_text_nostopstem: Returns a Text_Document_Field, which
    contains the field typenum, the length of this document, and a
    DV_Tree (DV_Tree = binary doc-vector tree sorted by word-code, with
    weights for this document). self is the field being parsed, which
    we need to figure out the type number to encode in each word.
 
    This version is the same as parse_text, but doesn't stem the word or throw
-   out stop-words.  */
+   out stop-words.
+*/
 
 void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
   static char word[16], printword[PRINTWORD_LENGTH];
@@ -527,7 +544,7 @@ void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
   int i, j;
   DB_UINT numwords = 0;  /* number unique words in this text */
   DB_UINT typenum;
-  int punct=0, alpha = 0;  
+  int punct=0, alpha = 0;
 
   typenum = ((Field *)self)->typenum;
 
@@ -535,10 +552,10 @@ void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
   while(*bufptr != '\0') { /* quit at the end of the fielddata */
     i = 0;  /* index into word, to keep from going over */
     j = 0;  /* number of characters in this word in the fielddata */
-    punct = 0;  /* flag for whether we've got punctuation or other 
-		   non-alnum chars (or -,_) in there */
-    alpha = 0; /* flag for if the text has letters (i.e. it's a number, 
-		  not a phone number / date) */
+    punct = 0;  /* flag for whether we've got punctuation or other
+                   non-alnum chars (or -,_) in there */
+    alpha = 0; /* flag for if the text has letters (i.e. it's a number,
+                  not a phone number / date) */
 
     while(isspace(*bufptr) && (*bufptr != '\0')) {
       /* skip space at the beginning */
@@ -547,11 +564,11 @@ void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
     start = bufptr;
     while(!isspace(*bufptr) && (*bufptr != '\0')) {
       /* skim to the next space */
-      if (!punct && 
-	  !isalnum(*bufptr) && 
-	  (*bufptr != '_') && 
-	  (*bufptr != '-') && 
-	  !isspace(*(bufptr + 1))) {
+      if (!punct &&
+          !isalnum(*bufptr) &&
+          (*bufptr != '_') &&
+          (*bufptr != '-') &&
+          !isspace(*(bufptr + 1))) {
         punct = 1;
       }
       if (isalpha(*bufptr) || (*bufptr == '_') || (*bufptr == '-')) {
@@ -581,9 +598,9 @@ void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
       }
       word[i] = '\0';
     }
-    
+
     strncpy(printword, word, PRINTWORD_LENGTH);
-    if(word[0] != '\0') { 
+    if(word[0] != '\0') {
       encode_text_word(word, code, typenum);
       /* dvtree_add_word returns the number of bytes allocated.  If this
          is zero, it means we added a word that's already in the tree
@@ -605,12 +622,14 @@ void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum) {
 }
 
 
-/* deparse_text: looks at a parsed text field (a Text_Document_Field
+/**
+   deparse_text: looks at a parsed text field (a Text_Document_Field
    contained in fielddata) and returns a GBuffer with some printable
    text describing that text.  Right now we're assuming the DV_Tree
    only contains words from a single document.  If this becomes not
    true, we'll have to actually check docnumbers and/or scan document
-   lists. */
+   lists.
+*/
 
 GBuffer *deparse_text_from_dvtree (DV_Tree *tree, void *self,
                                    int *total_weight, int *total_numwords) {
@@ -632,7 +651,7 @@ GBuffer *deparse_text_from_dvtree (DV_Tree *tree, void *self,
 
   /* If we've got something to our left, just reuse it instead of
      using more memory.  Otherwise, malloc it. */
-  if (left == NULL) {     
+  if (left == NULL) {
     left = (GBuffer *)malloc(sizeof(GBuffer));
     init_GBuffer(left);
   }
@@ -658,7 +677,7 @@ GBuffer *deparse_text_from_dvtree (DV_Tree *tree, void *self,
 
 
 GBuffer *deparse_text (void *fielddata, void *self) {
-  GBuffer *ret;  
+  GBuffer *ret;
   int total_weight=0, total_numwords=0;
   char tmpstr[256];
   Text_Document_Field *fd;
@@ -677,8 +696,10 @@ GBuffer *deparse_text (void *fielddata, void *self) {
 }
 
 
-/* Return node with the minimum wordcode that's still > wordcode.  If 
-   return_smallest == 1, just return the minimum wordcode */
+/**
+   Return node with the minimum wordcode that's still > wordcode.  If
+   return_smallest == 1, just return the minimum wordcode
+*/
 DV_Tree *word_greater_than(unsigned int *wordcode, DV_Tree *root, int return_smallest) {
   DV_Tree *potential_answer = NULL;
   int comparison;
@@ -696,7 +717,9 @@ DV_Tree *word_greater_than(unsigned int *wordcode, DV_Tree *root, int return_sma
 }
 
 
-/* Free a DV_Tree */
+/**
+   Free a DV_Tree
+*/
 void free_dvtree (DV_Tree *tree) {
   Doc_List *dl, *freeme;
   if (tree != NULL) {
@@ -711,9 +734,11 @@ void free_dvtree (DV_Tree *tree) {
     free(tree);
   }
 }
-  
-/* Free a parsed field (destructor) 
-   Takes a Text_Document_Field *, cast as a void *   */
+
+/**
+   Free a parsed field (destructor)
+   Takes a Text_Document_Field *, cast as a void *
+*/
 void free_parsed_text (void *parseddata) {
   Text_Document_Field *tdf;
 
@@ -724,23 +749,24 @@ void free_parsed_text (void *parseddata) {
   free(tdf);
 }
 
-/* Return next word in a Text_Document_Field.  If reset_p != 0, start
+/**
+   Return next word in a Text_Document_Field.  If reset_p != 0, start
    over.  Right now, we're just re-searching the tree every time to
    find the next word.  Not a big deal since we're only using this for
    queries, and we expect those to be relatively small.
 
    We're bundling the word, weight, and length (for normalization) all
    into the Text_Word_Info.  This will get freed by
-   update_sims_word. */
-   
+   update_sims_word.
+*/
 void *nextword_text (void *fielddata, int reset_p) {
   static DV_Tree *stateptr=NULL;   /* ptr to the previous word, so we can find the next. */
   Text_Document_Field *fd;
   Text_Word_Info *twi;
-  
+
   if (fielddata == NULL) return(NULL);
   if (stateptr == NULL) reset_p = 1;
- 
+
   fd = (Text_Document_Field *)fielddata;
   if (reset_p) stateptr = fd->tree;
   stateptr = word_greater_than(stateptr->wordcode, fd->tree, reset_p);
@@ -754,5 +780,3 @@ void *nextword_text (void *fielddata, int reset_p) {
 
   return(twi);
 }
-
-

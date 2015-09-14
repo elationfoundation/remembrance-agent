@@ -1,8 +1,8 @@
 
 /*******************************   stem.c   ***********************************
 
-   Purpose:    Implementation of the Porter stemming algorithm documented 
-               in: Porter, M.F., "An Algorithm For Suffix Stripping," 
+   Purpose:    Implementation of the Porter stemming algorithm documented
+               in: Porter, M.F., "An Algorithm For Suffix Stripping,"
                Program 14 (3), July 1980, pp. 130-137.
 
    Provenance: Written by B. Frakes and C. Cox, 1986.
@@ -12,7 +12,7 @@
                   - renamed functions and variables
                   - restricted function and variable scopes
                Changed by C. Fox, July, 1991.
-                  - added ANSI C declarations 
+                  - added ANSI C declarations
                   - branch tested to 90% coverage
 
    Notes:      This code will make little sense without the the Porter
@@ -199,18 +199,18 @@ static RuleList step5b_rules[] =
 /*****************************************************************************/
 /********************   Private Function Declarations   **********************/
 
-/*FN***************************************************************************
+/**
 
-       WordSize( word )
+   WordSize( word )
 
-   Returns: int -- a weird count of word size in adjusted syllables
+   \returns int -- a weird count of word size in adjusted syllables
 
-   Purpose: Count syllables in a special way:  count the number 
-            vowel-consonant pairs in a word, disregarding initial 
+   Purpose: Count syllables in a special way:  count the number
+            vowel-consonant pairs in a word, disregarding initial
             consonants and final vowels.  The letter "y" counts as a
             consonant at the beginning of a word and when it has a vowel
             in front of it; otherwise (when it follows a consonant) it
-            is treated as a vowel.  For example, the WordSize of "cat" 
+            is treated as a vowel.  For example, the WordSize of "cat"
             is 1, of "any" is 1, of "amount" is 2, of "anything" is 3.
 
    Plan:    Run a DFA to compute the word size
@@ -227,8 +227,7 @@ static RuleList step5b_rules[] =
             on the transition from state 1 to state 2, since this
             transition only occurs after a vowel-consonant pair, which
             is what we are counting.
-**/
-
+*/
 static int
 WordSize( word )
    char *word;   /* in: word having its WordSize taken */
@@ -259,11 +258,11 @@ WordSize( word )
 
    } /* WordSize */
 
-/*FN**************************************************************************
+/**
 
        ContainsVowel( word )
 
-   Returns: int -- TRUE (1) if the word parameter contains a vowel,
+   \returns int -- TRUE (1) if the word parameter contains a vowel,
             FALSE (0) otherwise.
 
    Purpose: Some of the rewrite rules apply only to a root containing
@@ -291,11 +290,11 @@ ContainsVowel( word )
 
    } /* ContainsVowel */
 
-/*FN**************************************************************************
+/**
 
        EndsWithCVC( word )
 
-   Returns: int -- TRUE (1) if the current word ends with a
+   \returns int -- TRUE (1) if the current word ends with a
             consonant-vowel-consonant combination, and the second
             consonant is not w, x, or y, FALSE (0) otherwise.
 
@@ -305,8 +304,7 @@ ContainsVowel( word )
    Plan:    Look at the last three characters.
 
    Notes:   None
-**/
-
+*/
 static int
 EndsWithCVC( word )
    char *word;   /* in: buffer with the word checked */
@@ -325,11 +323,11 @@ EndsWithCVC( word )
 
    } /* EndsWithCVC */
 
-/*FN**************************************************************************
+/**
 
        AddAnE( word )
 
-   Returns: int -- TRUE (1) if the current word meets special conditions
+   \returns int -- TRUE (1) if the current word meets special conditions
             for adding an e.
 
    Purpose: Rule 122 applies only to a root with this characteristic.
@@ -337,8 +335,7 @@ EndsWithCVC( word )
    Plan:    Check for size of 1 and a consonant-vowel-consonant ending.
 
    Notes:   None
-**/
-
+*/
 static int
 AddAnE( word )
    char *word;
@@ -348,11 +345,11 @@ AddAnE( word )
 
    } /* AddAnE */
 
-/*FN**************************************************************************
+/**
 
        RemoveAnE( word )
 
-   Returns: int -- TRUE (1) if the current word meets special conditions
+   \returns int -- TRUE (1) if the current word meets special conditions
             for removing an e.
 
    Purpose: Rule 502 applies only to a root with this characteristic.
@@ -360,8 +357,7 @@ AddAnE( word )
    Plan:    Check for size of 1 and no consonant-vowel-consonant ending.
 
    Notes:   None
-**/
-
+*/
 static int
 RemoveAnE( word )
    char *word;
@@ -371,11 +367,11 @@ RemoveAnE( word )
 
    } /* RemoveAnE */
 
-/*FN**************************************************************************
+/**
 
        ReplaceEnd( word, rule )
 
-   Returns: int -- the id for the rule fired, 0 is none is fired
+   \returns int -- the id for the rule fired, 0 is none is fired
 
    Purpose: Apply a set of rules to replace the suffix of a word
 
@@ -389,8 +385,7 @@ RemoveAnE( word )
             current suffix.  When it finds one, if the root of the word
             is long enough, and it meets whatever other conditions are
             required, then the suffix is replaced, and the function returns.
-**/
-
+*/
 static int
 ReplaceEnd( word, rule )
    char *word;        /* in/out: buffer with the stemmed word */
@@ -426,11 +421,11 @@ ReplaceEnd( word, rule )
 /*****************************************************************************/
 /*********************   Public Function Declarations   **********************/
 
-/*FN***************************************************************************
+/**
 
        Stem( word )
 
-   Returns: int -- FALSE (0) if the word contains non-alphabetic characters
+   \returns int -- FALSE (0) if the word contains non-alphabetic characters
             and hence is not stemmed, TRUE (1) otherwise
 
    Purpose: Stem a word
@@ -454,8 +449,7 @@ ReplaceEnd( word, rule )
             Changes from the article amount to a few additions to the
             rewrite rules;  these are marked in the RuleList data
             structures with comments.
-**/
-
+*/
 int
 Stem( word )
    char *word;  /* in/out: the word stemmed */
@@ -495,10 +489,10 @@ Stem( word )
    (void)ReplaceEnd( word, step4_rules );
 
    (void)ReplaceEnd( word, step5a_rules );
-   (void)ReplaceEnd( word, step5b_rules ); 
+   (void)ReplaceEnd( word, step5b_rules );
 
 */
-  
+
          /* Part 3: Return an indication of successful stemming */
    return( TRUE );
 

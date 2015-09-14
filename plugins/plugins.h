@@ -1,9 +1,11 @@
 #ifndef _PLUGINS_H_
 #define _PLUGINS_H_
 
-/* plugins.h: This file contains all the externally available function
+/**
+   plugins.h: This file contains all the externally available function
    prototypes for plugins.  Add yours at the end, with appropriate
-   comments as applicable. */
+   comments as applicable.
+*/
 
 /*
 All code included in versions up to and including 2.09:
@@ -42,10 +44,12 @@ USA.  */
 
 /*************************************************************
  TEXT plugins:
- Text includes various vector-based text retrieval algorithms.  
+ Text includes various vector-based text retrieval algorithms.
 **************************************************************/
 
-/* retrievers-text.c prototypes */
+/**
+   retrievers-text.c prototypes
+*/
 void update_sims_word_text_okapi(void *wordvoid,     /* The word (type Text_Word_Info) */
                                  Remem_Hash_Table *all_sims,
                                  void *fieldvoid,  /* The field (type Field) */
@@ -56,10 +60,14 @@ void update_sims_word_text_tfidf(void *wordvoid,     /* The word (type Text_Word
                                  void *fieldvoid,    /* The field (type Field) */
                                  Retrieval_Database_Info *rdi);
 
-/* indexers-text.c prototypes */
-void index_store_text (void *parsedata, char *dbdir, int last_write_p); 
+/**
+   indexers-text.c prototypes
+*/
+void index_store_text (void *parsedata, char *dbdir, int last_write_p);
 
-/* parsers-text.c prototypes */
+/**
+   parsers-text.c prototypes
+*/
 void *parse_text (char *fielddata, void *self, DB_UINT docnum);
 void *parse_text_nostopstem (char *fielddata, void *self, DB_UINT docnum);
 GBuffer *deparse_text (void *fielddata, void *self);
@@ -76,10 +84,14 @@ void free_parsed_text (void *parseddata);
  <date><carriage return>
 **************************************************************/
 
-/* indexers-date.c prototypes */
-void index_store_date (void *parsedata, char *dbdir, int last_write_p); 
+/**
+   indexers-date.c prototypes
+*/
+void index_store_date (void *parsedata, char *dbdir, int last_write_p);
 
-/* parsers-date.c prototypes */
+/**
+   parsers-date.c prototypes
+*/
 void *parse_date (char *fielddata, void *self, DB_UINT docnum);
 GBuffer *deparse_date (void *fielddata, void *self);
 void *nextword_date (void *fielddata, int reset_p);

@@ -1,5 +1,7 @@
-/* big.c: read and write to file in bigendian, regardless of the
-native format. */
+/**
+   big.c: read and write to file in bigendian, regardless of the
+native format.
+*/
 
 /*
 All code included in versions up to and including 2.09:
@@ -57,7 +59,7 @@ fwrite_big(void *ptr, size_t size, size_t num, FILE *stream)
       big[size*i + (size-1-j)] = ((unsigned char *) ptr)[size*i + j];
     }
   }
-  
+
   out = fwrite((void *)big, size, num, stream);
   free(big);
   return(out);
@@ -99,7 +101,7 @@ fread_big(void *ptr, size_t size, size_t num, FILE *stream)
       ((unsigned char *)ptr)[size*i + (size-1-j)] = big[size*i + j];
     }
   }
-  
+
   free(big);
 
 /*
@@ -116,7 +118,8 @@ fread_big(void *ptr, size_t size, size_t num, FILE *stream)
 #endif
 }
 
-/* read num elements of size size from stream and write them to dest_stream.
+/**
+   read num elements of size size from stream and write them to dest_stream.
    Here endianness doesn't matter 'cause it should be the same for both files.
 */
 size_t fcpy_big(FILE *dest_stream, size_t size, size_t num, FILE *stream) {
@@ -130,8 +133,10 @@ size_t fcpy_big(FILE *dest_stream, size_t size, size_t num, FILE *stream) {
   return(numwritten);
 }
 
-/* give an ftell of the end of the document (why isn't there such a 
-   command?) */
+/**
+   give an ftell of the end of the document (why isn't there such a
+   command?)
+*/
 long ftell_end (FILE *stream) {
   long curr_pos, end_pos;
   curr_pos = ftell(stream);
@@ -141,7 +146,9 @@ long ftell_end (FILE *stream) {
   return(end_pos);
 }
 
-/* Do an fread without changing the file pointer */
+/**
+   Do an fread without changing the file pointer
+*/
 size_t fread_peek_big(void *ptr, size_t size, size_t num, FILE *stream)
 {
   long curr_pos;

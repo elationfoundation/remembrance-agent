@@ -48,7 +48,9 @@ USA.
 /*   return(i); */
 /* } */
 
-/* Create a new Growbuffer, point gbuf to it. */
+/**
+   Create a new Growbuffer, point gbuf to it.
+*/
 void init_GBuffer(GBuffer *gbuf)
 {
   gbuf->size = GBUFF_INIT_SIZE;
@@ -57,7 +59,9 @@ void init_GBuffer(GBuffer *gbuf)
   gbuf->tail = 0;
 }
 
-/* Destructor for a growbuffer */
+/**
+   Destructor for a growbuffer
+*/
 void free_GBuffer(GBuffer *gbuf)
 {
   if (gbuf != NULL) {
@@ -66,7 +70,9 @@ void free_GBuffer(GBuffer *gbuf)
   return;
 }
 
-/* return copy of char * part of GrowBuffer */
+/**
+   return copy of char * part of GrowBuffer
+*/
 char *strcast_GBuffer(GBuffer *src) {
   char *retvalue;
 
@@ -81,7 +87,9 @@ char *strcast_GBuffer(GBuffer *src) {
   }
 }
 
-/* Like strncat, but for growbuffers */
+/**
+   Like strncat, but for growbuffers
+*/
 void strncat_GBuffer(GBuffer *dest, char *src, size_t n)
 {
   int i;
@@ -96,7 +104,9 @@ void strncat_GBuffer(GBuffer *dest, char *src, size_t n)
   return;
 }
 
-/* Like strncpy, but for GBuffers, except that it will always null terminate. */
+/**
+   Like strncpy, but for GBuffers, except that it will always null terminate.
+*/
 void strncpy_GBuffer(GBuffer *dest, char *src, size_t n)
 {
   int i;
@@ -111,9 +121,11 @@ void strncpy_GBuffer(GBuffer *dest, char *src, size_t n)
   return;
 }
 
-/* Chop out the first n characters of a growbuffer.  So
+/**
+   Chop out the first n characters of a growbuffer.  So
    strnchop_GBuffer(gbuf, 4) changes gbuf from "Boogie Woogie" to
-   "ie Woogie". */
+   "ie Woogie".
+*/
 void strnchop_GBuffer(GBuffer *dest, size_t n)
 {
   char *temp;

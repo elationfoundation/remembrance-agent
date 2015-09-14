@@ -44,7 +44,8 @@ USA.
 #include "conftemplates.h"
 
 
-/* parse_date:  fielddata contains a string representation of a date.
+/**
+   parse_date:  fielddata contains a string representation of a date.
      this string is passed to a date parser which returns a unix timestamp
      value for that date.  a Date_Document_Field is then returned which
      contains this timestamp and and document number associated with it.
@@ -73,7 +74,7 @@ void *parse_date (char *fielddata, void *self, DB_INT docnum) {
   GBuffer g;
   struct parsedate *pd;
 
-  init_GBuffer(&g); 
+  init_GBuffer(&g);
 
   /* figure out how many dates are in the fielddata */
   while(fielddata[s] != '\0') {
@@ -85,7 +86,7 @@ void *parse_date (char *fielddata, void *self, DB_INT docnum) {
 
   return_value = (Date_Document_Field *)malloc(sizeof(Date_Document_Field));
   return_value->docnum = (DB_UINT)docnum;
-  
+
   /* printf("Creating document[%d]\n", docnum); */
 
   while(1) {
@@ -97,18 +98,19 @@ void *parse_date (char *fielddata, void *self, DB_INT docnum) {
       p++;
 
       if (fielddata[q] == '\0')
-	break;
+        break;
     }
     strncat_GBuffer(&g, &fielddata[q], 1);
-    q++;    
-  }      
-  
+    q++;
+  }
+
   free_GBuffer(&g);
   return_value->tree = tree;
   return return_value;
 }
 
-/* deparse_text: looks at a parsed date field (a Date_Document_Field
+/**
+   deparse_text: looks at a parsed date field (a Date_Document_Field
    contained in fielddata) and returns a GBuffer with some printable
    text describing the dates.
 
@@ -120,9 +122,9 @@ GBuffer *deparse_date (void *fielddata, void *self) {
   GBuffer *s;
   char b[100];
   int n=0;
-  
+
   init_GBuffer(s);
-  
+
   deparse_helper(((Date_Document_Field *)fielddata)->tree, s);
 
   if (s == NULL) {
@@ -144,21 +146,23 @@ void deparse_helper(Date_Tree *tree, GBuffer *buf) {
     deparse_helper(tree->right, buf);
 }
 
-/* Return next date in a Date_Document_Field.  If reset_p != 0, start
+/**
+   Return next date in a Date_Document_Field.  If reset_p != 0, start
    over.  Right now, we're just re-searching the tree every time to
    find the next date.  Not a big deal since we're only using this for
    queries, and we expect those to be relatively small.
 
    We're bundling the date, into the Date_Word_Info.  This will get
-   freed by update_sims_word. */
+   freed by update_sims_word.
+*/
 void *nextword_date (void *fielddata, int reset_p) {
   static Date_Tree *stateptr=NULL;   /* ptr to the previous word, so we can find the next. */
   Date_Document_Field *fd;
   Date_Word_Info *dwi;
-  
+
   if (fielddata == NULL) return(NULL);
   if (stateptr == NULL) reset_p = 1;
- 
+
   fd = (Date_Document_Field *)fielddata;
   if (reset_p)
     stateptr = fd->tree;
@@ -171,8 +175,10 @@ void *nextword_date (void *fielddata, int reset_p) {
   return(dwi);
 }
 
-/* Return node with the minimum date that's still > date.  If 
-   return_smallest == 1, just return the minimum wordcode */
+/**
+   Return node with the minimum date that's still > date.  If
+   return_smallest == 1, just return the minimum wordcode
+*/
 Date_Tree *date_greater_than(DB_UINT *date, Date_Tree *root, int return_smallest) {
   Date_Tree *potential_answer = NULL;
   int comparison;
@@ -180,7 +186,7 @@ Date_Tree *date_greater_than(DB_UINT *date, Date_Tree *root, int return_smallest
   if (root == NULL) return(NULL);
 
   comparison = (return_smallest || (root->date < *date)) ? -1 :
-	   ((root->date > *date) ? 1 : 0);
+           ((root->date > *date) ? 1 : 0);
 
   if (comparison > 0) {     /* our node > date, so look for smaller */
     potential_answer = date_greater_than(date, root->left, return_smallest);
@@ -202,7 +208,8 @@ void free_parsed_date (void *parseddata) {
   return;
 }
 
-/* Add a date to a Date_Tree
+/**
+   Add a date to a Date_Tree
 
    NOTE: This assumes that we'll be adding a document at a time, and adding all dates
    for a particular document at once.  If this isn't true, we'll need to actually scan
@@ -237,28 +244,31 @@ int datetree_add_word(Date_Tree **treeptr,
     *treeptr = tree;
     return(sizeof(Date_Tree) + sizeof(Date_Doc_List));
   }
-  
-  /* TODO: fix this comment */
-  /* If we've already got a match for this wordcode AND this doc, just
+
+/**
+   \todo fix this comment
+
+   If we've already got a match for this wordcode AND this doc, just
      increment the weight.  If we've got the wordcode but not the doc,
      prepend this document to the front.
 
      NOTE: This assumes that we'll be adding a document at a time, and adding
-     all words for a particular document at once.  If this isn't true, we'll 
-     need to actually scan the whole doclist for a docvec node.  */
+     all words for a particular document at once.  If this isn't true, we'll
+     need to actually scan the whole doclist for a docvec node.
+*/
 
   /* cmp = wordcode_cmp(code, tree->wordcode); */
 
   if(date == tree->date) {                   /* then we are adding a date that is already in the tree... */
     /* hmm... what to do here? */
-    /* Got the word but not doc, add the doc to list 
+    /* Got the word but not doc, add the doc to list
        This adds in reverse-doc order, 'cause it's easier. */
     if (tree->documents->docnum == docnum) { /* already have this date & doc */
       return(0);     /* Didn't alloc anything this round */
     }
     else {
-      if ((doclist = (Date_Doc_List *)malloc(sizeof(Date_Doc_List))) == NULL) 
-	SavantError(ENOMEM, "Unable to malloc doclist in parsers-date.c");
+      if ((doclist = (Date_Doc_List *)malloc(sizeof(Date_Doc_List))) == NULL)
+        SavantError(ENOMEM, "Unable to malloc doclist in parsers-date.c");
       doclist->docnum = docnum;
       doclist->next = tree->documents;
       tree->documents = doclist;
@@ -274,7 +284,8 @@ int datetree_add_word(Date_Tree **treeptr,
 }
 
 
-/* add_document_to_datetree: merge the documentTree into target.
+/**
+   add_document_to_datetree: merge the documentTree into target.
    documentTree is assumed to only contain a single document (one
    entry in the Date_Doc_List per word) -- otherwise we'd have to do more
    checking and scanning.
@@ -287,10 +298,11 @@ int datetree_add_word(Date_Tree **treeptr,
    documents in a linked list in parse_date, and only do the
    tree-search once instead of twice.  The downside is we'd have to
    malloc more memory, 'cause we'd have a list entry for every
-   occurence of a date whether it's duplicated or not. 
+   occurence of a date whether it's duplicated or not.
 
    Return the number of bytes added to target this round, so we can
-   keep track of memory usage.  (There really should be a better way.)  */
+   keep track of memory usage.  (There really should be a better way.)
+*/
 
 int add_document_to_datetree (Date_Tree **target, Date_Tree *documentTree) {
   int mem = 0;    /* memory used */
@@ -306,15 +318,13 @@ int add_document_to_datetree (Date_Tree **target, Date_Tree *documentTree) {
   }
 
   /* I'm now a leaf node, so add & free myself */
-  mem += datetree_add_word(target, 
-			   documentTree->date,
-			   documentTree->documents->docnum);
+  mem += datetree_add_word(target,
+                           documentTree->date,
+                           documentTree->documents->docnum);
 
 /* We used to free things here, but now we're freeing in a top-level call in main. */
 /*free(documentTree->documents);
   free(documentTree);
 */
   return(mem);
-}  
-
-
+}

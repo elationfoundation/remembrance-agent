@@ -42,7 +42,7 @@ USA.
 #include <gbuf.h>
 #include <pcre.h>
 
-/*
+/**
   regex_filter:
 
     char **regexps  -  array of regex strings, each of which will
@@ -55,7 +55,7 @@ USA.
 void regex_filter(char **regexps, GBuffer *target);
 
 
-/*
+/**
   regex_find:
 
   char *regexp      -  the first occurance of this regex will be
@@ -72,4 +72,3 @@ void regex_filter(char **regexps, GBuffer *target);
 void regex_find(char *regexp, char *target, int length_to_search, int *start, int *end);
 
 #endif
-

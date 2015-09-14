@@ -47,10 +47,12 @@ USA.
 #define READ_BUFFER_AMOUNT 20000 /* num chars we read in one gulp */
 #define MAX_DELIMIT_WINDOW 1023  /* Max window of characters we search for a doc delimiter */
 
-/* Is this file a binary file? */
+/**
+   Is this file a binary file?
+*/
 int is_bin_file_p(char *filename)
 {
-  /* For now, just read in a few K and see if 95% is 
+  /* For now, just read in a few K and see if 95% is
      printable (there may be a better way, but this is fast) */
   char buf[2048];
   FILE *file;
@@ -62,16 +64,16 @@ int is_bin_file_p(char *filename)
   }
 
   max=fread(&buf, sizeof(char), 2048, file);
-  
+
   fclose(file);
 
   for(i=0;i<max;i++)
     if (isprint(buf[i]) || isspace(buf[i]))
       printables++;
-  
+
   if((max > 0) && (100*printables/max > 95))
     return(0);
-  else 
+  else
     return(1);
 }
 
@@ -85,17 +87,18 @@ int string_present_p(char *string, char **strings)
   return(0);
 }
 
-/* For each source directory/file (or file_source directory/file,
+/**
+   For each source directory/file (or file_source directory/file,
 specified with a -f), expand out from the command line and call
 file_search, which then indexes recursively all the files in all the
-directories below that point.  */
-
+directories below that point.
+*/
 void get_and_append_filenames(char *sources[], char *excludees[], List_of_Filenames **lof)
 {
   int i, isurl=0;
   char cwd[PATH_MAX+2], command[MAX_STRING], *cur_dir, *temp_excl;
   List_of_Filenames *current_filename = NULL;
-  
+
 #ifdef HAVE_GETCWD
   getcwd(cwd, PATH_MAX);
 #else
@@ -107,16 +110,16 @@ void get_and_append_filenames(char *sources[], char *excludees[], List_of_Filena
   for(i=0; excludees[i] != NULL; i++) {
     if(!((strncmp(excludees[i], "http://", 7) == 0) || (strncmp(excludees[i], "ftp://", 6) == 0))) {
       if(excludees[i][0] != '/') {
-	temp_excl = excludees[i];
-	
-	if ((excludees[i] = (char *)malloc(strlen(temp_excl) + strlen(cwd) + 2)) == NULL)
-	  SavantError(ENOMEM, "Unable to malloc excludees in imain.c.");
-	
-	strcpy(excludees[i], cwd);
-	strcat(excludees[i], temp_excl);
+        temp_excl = excludees[i];
+
+        if ((excludees[i] = (char *)malloc(strlen(temp_excl) + strlen(cwd) + 2)) == NULL)
+          SavantError(ENOMEM, "Unable to malloc excludees in imain.c.");
+
+        strcpy(excludees[i], cwd);
+        strcat(excludees[i], temp_excl);
       }
       if (excludees[i][strlen(excludees[i])-1] == '/') {
-	excludees[i][strlen(excludees[i])-1] = '\0';
+        excludees[i][strlen(excludees[i])-1] = '\0';
       }
     }
   }
@@ -131,7 +134,7 @@ void get_and_append_filenames(char *sources[], char *excludees[], List_of_Filena
       }
       else {          /* It's a relative filename -- add cwd */
         if ((cur_dir = (char *)malloc(strlen(sources[i]) + strlen(cwd) + 2)) == NULL)
-          SavantError(ENOMEM, "Unable to malloc cur_dir in parsedoc.c.");        
+          SavantError(ENOMEM, "Unable to malloc cur_dir in parsedoc.c.");
         strcpy(cur_dir, cwd);
         strcat(cur_dir, sources[i]);
       }
@@ -148,7 +151,7 @@ void get_and_append_filenames(char *sources[], char *excludees[], List_of_Filena
       for (current_filename = *lof; (current_filename->next != NULL); current_filename = current_filename->next);
       current_filename->next = get_files_from_directory(cur_dir, excludees);
     }
-    
+
     /* Free up memory */
     if(cur_dir != sources[i]) {
       free(cur_dir);
@@ -158,10 +161,12 @@ void get_and_append_filenames(char *sources[], char *excludees[], List_of_Filena
 }
 
 
-/* Recursively go down directories specified, excluding
+/**
+   Recursively go down directories specified, excluding
 directories/files on the excludies list, and avoiding symbolic links.
 When you get to a real file (as opposed to a directory), call
-process_file.  file_search is called by pre_process. */
+process_file.  file_search is called by pre_process.
+*/
 List_of_Filenames *get_files_from_directory(char *sourcename, char **excludees)
 {
   int i, isurl=0;
@@ -183,8 +188,8 @@ List_of_Filenames *get_files_from_directory(char *sourcename, char **excludees)
     isurl=1;
     if(string_present_p(sourcename, excludees)) {
       if(SavantVerbose) {
-	printf("Excluding %s.\n", sourcename);
-	fflush(stdout);
+        printf("Excluding %s.\n", sourcename);
+        fflush(stdout);
       }
       free(list_of_filenames);
       return NULL;
@@ -200,15 +205,15 @@ List_of_Filenames *get_files_from_directory(char *sourcename, char **excludees)
   else {  /* it's not a URL */
     if(string_present_p(sourcename, excludees)) {
       if(SavantVerbose) {
-	printf("Excluding %s.\n", sourcename);
-	fflush(stdout);
+        printf("Excluding %s.\n", sourcename);
+        fflush(stdout);
       }
       free(list_of_filenames);
       return NULL;
     }
-    
+
     shortname = strrchr(sourcename, '/')+1;
-    if((shortname[0] == '#') || /* ignore *~ and #*, possibly .* */ 
+    if((shortname[0] == '#') || /* ignore *~ and #*, possibly .* */
        (shortname[strlen(shortname)-1] == '~') ||
        (shortname[0] == '.' && !Config.index_dotfiles)) {
       if(SavantVerbose) {
@@ -255,10 +260,10 @@ List_of_Filenames *get_files_from_directory(char *sourcename, char **excludees)
         if (filename[strlen(filename)-1] != '/')
           strcat(filename, "/");
         strncat(filename, shortname, sizeof(filename)-1);
-        
+
         /* find the end of the chain of filenames, and recursively append */
-        for (current_filename = list_of_filenames; 
-             (current_filename->next != NULL); 
+        for (current_filename = list_of_filenames;
+             (current_filename->next != NULL);
              current_filename = current_filename->next);
         current_filename->next = get_files_from_directory (filename, excludees);
       }
@@ -268,24 +273,24 @@ List_of_Filenames *get_files_from_directory(char *sourcename, char **excludees)
     current_filename = list_of_filenames;
     list_of_filenames = list_of_filenames->next;
     free(current_filename);
-    
+
     if(SavantVerbose) {
       printf("Finished %s.\n", sourcename);
       fflush(stdout);
     }
     closedir(directory);
-    
+
     return list_of_filenames;
   }
 }
 
 
-/* Recognize what kind of file this is.  Target is a string containing the 
+/**
+   Recognize what kind of file this is.  Target is a string containing the
    first several lines of the file.
-   Find the first template that matches the current file. 
+   Find the first template that matches the current file.
    Note: This only applies to INDEX_TYPE templates.  Ignore QUERY_TYPE.
 */
-
 General_Template *recognize_file(FILE *file, List_of_General_Templates *current_template) {
   int start, end, max;
   char target[RECOGNIZE_LIMIT +1];
@@ -304,11 +309,11 @@ General_Template *recognize_file(FILE *file, List_of_General_Templates *current_
   return NULL;
 }
 
-/* Recognize what kind of query this is.  query is a GBuffer containing the query.
-   Find the first template that matches it.. 
+/**
+   Recognize what kind of query this is.  query is a GBuffer containing the query.
+   Find the first template that matches it..
    Note: This only applies to QUERY_TYPE templates.  Ignore INDEX_TYPE.
 */
-
 General_Template *recognize_query(GBuffer query, List_of_General_Templates *current_template) {
   int start, end, max;
   char *target;
@@ -328,14 +333,15 @@ General_Template *recognize_query(GBuffer query, List_of_General_Templates *curr
 }
 
 
-/* Find the next doc in a file.  documentText is the text from this
+/**
+   Find the next doc in a file.  documentText is the text from this
    current doc.  target_template is the template for this particular
    file's type.  file_ptr is the pointer to the file in question.
    start will be the character offset in the file of the first
    character of the delimiter, and end will be the character offset of
    the character just before the dilimiter starting the next
-   document. */
-
+   document.
+*/
 void find_next_doc(GBuffer *documentText,      /* The text read in from the document.  Modified to eat docs each run. */
                    Doc_Info *document,        /* we fill in this document into document->documentText */
                    General_Template *target_template, /* Which template is this file? */
@@ -394,7 +400,7 @@ void find_next_doc(GBuffer *documentText,      /* The text read in from the docu
 
     /* I'm pretty sure I'm relying on C string manipulation somewhere in GBuffers, so
        any nulls in the middle of the string screw things up. The right thing to do is
-       to not mind having nulls in the middle since GBuffers have the length anyway, 
+       to not mind having nulls in the middle since GBuffers have the length anyway,
        but in the meantime I'm just replacing nulls with ^A's */
     while (strlen(buffer) < numbytes) {
       buffer[strlen(buffer)]='\1';
@@ -432,7 +438,7 @@ void find_next_doc(GBuffer *documentText,      /* The text read in from the docu
 
   /* find the second delimiter -- we want to search the area that starts
     just *after* the end of the first delimiter.  */
-  regex_find(target_template->delimiter, &(dt[first_end + 1]), 
+  regex_find(target_template->delimiter, &(dt[first_end + 1]),
              documentText->tail - first_end, &second_start, &second_end);
   /* second_start and second_end should be relative to the start of dt */
   if (second_start != -1) {
@@ -449,7 +455,7 @@ void find_next_doc(GBuffer *documentText,      /* The text read in from the docu
 
       /* Return from first_start to eof */
       strncpy_GBuffer(document->documentText,
-                      (char *)(dt + first_start), 
+                      (char *)(dt + first_start),
                       (documentText->tail - first_start));
       fposition = ftell(file_ptr);
       if (fposition == -1) {
@@ -467,7 +473,7 @@ void find_next_doc(GBuffer *documentText,      /* The text read in from the docu
         if (fposition == -1) SavantError(errno, "Error with ftell in find_next_doc");
         document->doc_end = fposition;
       }
-      
+
       /* Clear documentText so we don't think there's more to read */
       strncpy_GBuffer(documentText, "", 0);
       return;
@@ -513,13 +519,13 @@ void find_next_doc(GBuffer *documentText,      /* The text read in from the docu
 
   /* if we get to this point without hitting any of the return markers, then
      just return pointers to the start of the first delimiter and the point
-     just *before* the start of the second delimiter.  
+     just *before* the start of the second delimiter.
      Chop out this document in documentText, so we won't read it next round. */
 
   /* NOTE: second_start & second_end are NOT relative to first_end+1, but are */
   /* rather relative to the start of dt */
   strncpy_GBuffer(document->documentText,
-                  (char *)(dt + first_start), 
+                  (char *)(dt + first_start),
                   (second_start - first_start));
   strnchop_GBuffer(documentText, second_start - first_start);
 
@@ -551,11 +557,11 @@ void find_fields(Doc_Info *docInfo, General_Template *target_template) {
     strncpy_GBuffer(&good_bits, "", 0);   /* clear out the good bits */
 
     /* compile the id_regex */
-/* The version for pcre-1.09 
-    if (NULL == (pattern = pcre_compile(target_template->fields[i]->id_regexp, 
+/* The version for pcre-1.09
+    if (NULL == (pattern = pcre_compile(target_template->fields[i]->id_regexp,
                                         PCRE_DOTALL, (const char **)&errptr, &error_offset))) {
 */
-    if (NULL == (pattern = pcre_compile(target_template->fields[i]->id_regexp, 
+    if (NULL == (pattern = pcre_compile(target_template->fields[i]->id_regexp,
                                         PCRE_DOTALL, (const char **)&errptr, &error_offset, NULL))) {
       sprintf(errortext, "find_and_index_fields: pcre error %s at location %d",
               errptr, error_offset);
@@ -566,13 +572,13 @@ void find_fields(Doc_Info *docInfo, General_Template *target_template) {
     sizedt = strlen(dt);
 
     /* loop while there are still matches... */
-/* For pcre-1.09 
+/* For pcre-1.09
     while ((sizedt > 0) && (errcode = pcre_exec(pattern, NULL, dt, sizedt, 0, vector, 256)) > 0) {
 */
     while ((sizedt > 0) && (errcode = pcre_exec(pattern, NULL, dt, sizedt, 0, 0, vector, 256)) > 0) {
       /* see pcre documentation for info on how vector works
-	 but suffice it to say that group_begin and group end
-	 will contain offsets to the good bits. */
+         but suffice it to say that group_begin and group end
+         will contain offsets to the good bits. */
 
       group_begin = vector[2 * target_template->fields[i]->id_index];
       group_end = vector[2 * target_template->fields[i]->id_index + 1];
@@ -580,9 +586,9 @@ void find_fields(Doc_Info *docInfo, General_Template *target_template) {
 /* It's possible to match the pattern, but not this particular field.
    If so, just go on to the next one. */
       if ((group_begin == -1) && (group_end == -1)) {
-	break;
+        break;
       }
-      if ((group_begin > docInfo->documentText->size) || 
+      if ((group_begin > docInfo->documentText->size) ||
           (group_end > docInfo->documentText->size)) {
         sprintf(errortext, "find_fields: vector out of range for finding fielddata: %s (is id_index correct?)",
                 target_template->fields[i]->field->printname);
@@ -591,9 +597,9 @@ void find_fields(Doc_Info *docInfo, General_Template *target_template) {
 
 
       /* put the string described by the group_begin and group_end
-	 offsets into a GrowBuffer called good_bits.  Delimit with a CR if
+         offsets into a GrowBuffer called good_bits.  Delimit with a CR if
          there's already text in it. */
-      if (strlen(strcast_GBuffer(&good_bits)) > 0) 
+      if (strlen(strcast_GBuffer(&good_bits)) > 0)
         strncat_GBuffer(&good_bits, "\n", 1);
       strncat_GBuffer(&good_bits, &(dt[group_begin]), group_end - group_begin);
 
@@ -610,7 +616,7 @@ void find_fields(Doc_Info *docInfo, General_Template *target_template) {
 
   free_GBuffer(&good_bits);
   return;
-} 
+}
 
 
 void filter_fields(Doc_Info *docInfo, General_Template *target_template) {
@@ -619,16 +625,16 @@ void filter_fields(Doc_Info *docInfo, General_Template *target_template) {
 
   for (i=0; ((i<MAX_NUMBER_FIELDS) && (target_template->fields[i] != NULL)); i++) {
     if (SavantDebug) printf("filter_fields: i = %d, docnum = %d\n", i, docInfo->docnum);
-    regex_filter(target_template->fields[i]->filter_regexp, docInfo->fields[i]); 
+    regex_filter(target_template->fields[i]->filter_regexp, docInfo->fields[i]);
   }
 }
 
 void cleanup_fields(Doc_Info *docInfo, General_Template *target_template) {
   int i;
   /* The cleanup function */
-  void (*cleanup_parsed)(void *parseddata) = NULL;   
+  void (*cleanup_parsed)(void *parseddata) = NULL;
 
-  for (i=0; ((i<MAX_NUMBER_FIELDS) && (target_template->fields[i] != NULL)); 
+  for (i=0; ((i<MAX_NUMBER_FIELDS) && (target_template->fields[i] != NULL));
        i++) {
     cleanup_parsed = target_template->fields[i]->field->cleanup_parsed;
     if (cleanup_parsed != NULL) {
@@ -640,14 +646,14 @@ void cleanup_fields(Doc_Info *docInfo, General_Template *target_template) {
 void parse_fields(Doc_Info *docInfo, General_Template *target_template) {
   int i;
   /* The parser function */
-  void *(*parser)(char *fielddata, void *self, DB_UINT docnum) = NULL;   
+  void *(*parser)(char *fielddata, void *self, DB_UINT docnum) = NULL;
 
-  for (i=0; ((i<MAX_NUMBER_FIELDS) && (target_template->fields[i] != NULL)); 
+  for (i=0; ((i<MAX_NUMBER_FIELDS) && (target_template->fields[i] != NULL));
        i++) {
       parser = target_template->fields[i]->field->parser;
       if (parser != NULL) {
-        docInfo->parsedfields[i] = 
-	  parser((void *)(strcast_GBuffer(docInfo->fields[i])),
+        docInfo->parsedfields[i] =
+          parser((void *)(strcast_GBuffer(docInfo->fields[i])),
                                           target_template->fields[i]->field,
                                           docInfo->docnum);
       }
@@ -657,16 +663,17 @@ void parse_fields(Doc_Info *docInfo, General_Template *target_template) {
   }
 }
 
-/* Write the index info to disk.  If final_write_p is 0, close up the files.  
-   WARNING: This frees docInfo->parsedfields[i] as it goes. 
+/**
+   Write the index info to disk.  If final_write_p is 0, close up the files.
+   WARNING: This frees docInfo->parsedfields[i] as it goes.
 */
-void index_store_fields(Doc_Info *docInfo, General_Template *target_template, 
-			char *dbdir, int final_write_p) {
+void index_store_fields(Doc_Info *docInfo, General_Template *target_template,
+                        char *dbdir, int final_write_p) {
   int i;
   void (*index_store)(void *parsedata, char *dbdir, int last_write_p) = NULL;
 
-  for (i=0; ((i<MAX_NUMBER_FIELDS) && 
-	     (target_template->fields[i] != NULL)); i++) {
+  for (i=0; ((i<MAX_NUMBER_FIELDS) &&
+             (target_template->fields[i] != NULL)); i++) {
       index_store = target_template->fields[i]->field->index_store;
       if (index_store != NULL) {
         if (docInfo != NULL) {
@@ -680,12 +687,13 @@ void index_store_fields(Doc_Info *docInfo, General_Template *target_template,
 }
 
 
-/* Return the template number for a particular document number.  Get
+/**
+   Return the template number for a particular document number.  Get
    the info from cache.  The whole cache is loaded from the DLOFFS
    file in one load, to avoid multiple seeks.  This is memory
    intensive (30 * num docs bytes total), so we may have to do this in
-   chunks if it becomes a problem */
-
+   chunks if it becomes a problem
+*/
 DB_INT docloc_templateno (Retrieval_Database_Info *rdi, DB_UINT docnum) {
   static DB_INT *template_number_cache = NULL;
   FILE *DLOFFS_FILE = NULL;
@@ -711,7 +719,8 @@ DB_INT docloc_templateno (Retrieval_Database_Info *rdi, DB_UINT docnum) {
 
 
 
-/* Write the document position info (doc_start and doc_end), doc filename, and docloc offset
+/**
+   Write the document position info (doc_start and doc_end), doc filename, and docloc offset
    info to file.  This is the same regardless of file type or fields.  Also write title info,
    which is dependent on the file template.
 
@@ -721,7 +730,7 @@ DB_INT docloc_templateno (Retrieval_Database_Info *rdi, DB_UINT docnum) {
 
       docloc_offs (DLOFFS_FILE): Four ints per document.
               (DB_INT)   (DB_INT)    (DB_INT)   (DB_INT)   (DB_INT)
-              offset     end_offset  doc_start  doc_end    template number   
+              offset     end_offset  doc_start  doc_end    template number
               (repeat)
 
               offset = file offset into doc_locs for this file.  We
@@ -744,7 +753,8 @@ DB_INT docloc_templateno (Retrieval_Database_Info *rdi, DB_UINT docnum) {
       title_offs: offsets into the titles file.  One int per doc, for the start of the title.
 
               (DB_INT)
-              offset-low   */
+              offset-low
+*/
 void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *db_dir, int final_write_p) {
   static FILE *DOCLOC_FILE = NULL;
   static FILE *DLOFFS_FILE = NULL;
@@ -754,7 +764,7 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
   static long dl_fpos = 0;
   DB_INT dl_fpos_writeme = 0;
   DB_INT dl_fpos_end = 0;
-  
+
   int typenum;
   char *titlearray[MAX_NUMBER_FIELDS];
   int titlelengtharray[MAX_NUMBER_FIELDS];
@@ -775,18 +785,18 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
   if (docInfo != NULL) {
 
     /* If we've got a new file, update DOCLOC_FILE & our offset into it */
-    if (strcmp(previous_filename, docInfo->filename)) {        
+    if (strcmp(previous_filename, docInfo->filename)) {
       strcpy(previous_filename, docInfo->filename);
-      
+
       dl_fpos = ftell(DOCLOC_FILE);
       if (dl_fpos == -1) {
         sprintf(errortext, "write_doc_info: error %d doing ftell on file %s%s", errno, db_dir, DOCLOC_FILE);
         SavantError(EIO, errortext);
       }
-      
+
       fprintf(DOCLOC_FILE, "%s\n", docInfo->filename);
     }
-    
+
     dl_fpos_writeme = (DB_INT)dl_fpos;
     dl_fpos_end = dl_fpos_writeme + strlen(docInfo->filename);
     fwrite_big(&(dl_fpos_writeme), sizeof(DB_INT), 1, DLOFFS_FILE);
@@ -794,10 +804,10 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
     fwrite_big(&(docInfo->doc_start), sizeof(DB_UINT), 1, DLOFFS_FILE);
     fwrite_big(&(docInfo->doc_end), sizeof(DB_UINT), 1, DLOFFS_FILE);
     fwrite_big(&(target_template->typenum), sizeof(DB_INT), 1, DLOFFS_FILE);
-    
+
     /* Handle Titles stuff.  This is a placeholder right now. */
-    titlestring = (char *)malloc(sizeof(char) * MAX_NUMBER_FIELDS * 
-				 Config.source_field_width + 1);
+    titlestring = (char *)malloc(sizeof(char) * MAX_NUMBER_FIELDS *
+                                 Config.source_field_width + 1);
     titlestring[0] = '\0';
 
     for (i=0; i<MAX_NUMBER_FIELDS; i++) {
@@ -816,9 +826,9 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
           strncat(titlestring, titlearray[i], titlelengtharray[i]);
         }
         else if (titledefaultsarray[i] == FILENAME_TITLE) {
-          if (rindex(docInfo->filename, '/') != NULL) 
+          if (rindex(docInfo->filename, '/') != NULL)
             strncat(titlestring, rindex(docInfo->filename, '/')+1, titlelengtharray[i]);
-          else 
+          else
             strncat(titlestring, docInfo->filename, titlelengtharray[i]);
         }
         else if (titledefaultsarray[i] == OWNER_TITLE) {
@@ -826,20 +836,20 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
           passbuf = getpwuid(statbuf.st_uid);
           if(passbuf != NULL) {
             strncat(titlestring, passbuf->pw_name, titlelengtharray[i]);
-          } 
-        } 
+          }
+        }
         else if (titledefaultsarray[i] == MODTIME_TITLE) {
           stat(docInfo->filename, &statbuf);
           strncat(titlestring, ctime(&statbuf.st_mtime), titlelengtharray[i]);
         }
-      }  
+      }
       strcat(titlestring, "|");
     }
 
     /* Include the filename in the title sequence, at the end */
-    if (rindex(docInfo->filename, '/') != NULL) 
+    if (rindex(docInfo->filename, '/') != NULL)
       strncat(titlestring, rindex(docInfo->filename, '/')+1, titlelengtharray[i]);
-    else 
+    else
       strncat(titlestring, docInfo->filename, titlelengtharray[i]);
     strcat(titlestring, "|");
 
@@ -848,11 +858,11 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
         titlestring[i] = ' ';
       }
     }
-    
+
     titles_fpos = (DB_INT)ftell(TITLES_FILE);
     if (titles_fpos == -1) {
-      sprintf(errortext, "write_doc_info: error %d doing ftell on file %s%s", 
-	      errno, db_dir, TITLES_FILE);
+      sprintf(errortext, "write_doc_info: error %d doing ftell on file %s%s",
+              errno, db_dir, TITLES_FILE);
       SavantError(EIO, errortext);
     }
     fprintf(TITLES_FILE, "%s\n", titlestring);
@@ -860,7 +870,7 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
 
     /* Not sure why I have to do this -- might be because of the
        static storage.  Purify compiains if I don't though. */
-    
+
     free(titlestring);
   }
 
@@ -874,22 +884,24 @@ void write_doc_info(Doc_Info *docInfo, General_Template *target_template, char *
   }
 }
 
-/* Print parsed document info (mainly for debugging purposes) */
+/**
+   Print parsed document info (mainly for debugging purposes)
+*/
 void print_doc_info (Doc_Info *docInfo, General_Template *template) {
   GBuffer *deparsed = NULL;
   int i;
 
   printf("Template Type: %s\n", template->printname);
   if (template->templatetype == INDEX_TYPE) {
-    printf("Document #%d, file %s, char position %d to %d\n\n", 
+    printf("Document #%d, file %s, char position %d to %d\n\n",
            docInfo->docnum, docInfo->filename, docInfo->doc_start, docInfo->doc_end);
   }
   for (i=0; (i<MAX_NUMBER_FIELDS) && (template->fields[i] != NULL); i++) {
-    printf("\n********* Field %s:\n%s\n",  
+    printf("\n********* Field %s:\n%s\n",
            template->fields[i]->field->printname,
            strcast_GBuffer(docInfo->fields[i]));
     if ((docInfo->parsedfields[i] != NULL) && (template->fields[i]->field->deparser != NULL)) {
-      deparsed = template->fields[i]->field->deparser(docInfo->parsedfields[i], 
+      deparsed = template->fields[i]->field->deparser(docInfo->parsedfields[i],
                                                       (void *)(template->fields[i]->field));
       printf("Deparsed:\n%s\n", strcast_GBuffer(deparsed));
       fflush(stdout);
@@ -899,23 +911,27 @@ void print_doc_info (Doc_Info *docInfo, General_Template *template) {
   }
 }
 
-/* Comparison function for top_contributors (for qsort) 
-   (sort high-to-low) */
+/**
+   Comparison function for top_contributors (for qsort)
+   (sort high-to-low)
+*/
 int top_contributors_cmp(Top_Contributors *tl1, Top_Contributors *tl2) {
-  if (tl1->sim > tl2->sim) 
+  if (tl1->sim > tl2->sim)
     return(-1);
-  if (tl1->sim < tl2->sim) 
+  if (tl1->sim < tl2->sim)
     return(1);
   return(0);
 }
-    
+
 int top_contributors_cmp_qsort(const void *tl1, const void *tl2) {
-  return(top_contributors_cmp((Top_Contributors *)tl1, 
+  return(top_contributors_cmp((Top_Contributors *)tl1,
                               (Top_Contributors *)tl2));
 }
 
 
-/* Update a top_contributors with a potential replacement */
+/**
+   Update a top_contributors with a potential replacement
+*/
 void add_potential_top_contributor (Top_Contributors *topList, float additional, char *printname) {
   int i, minIndex=0;
   float minSim = 0.0;
@@ -936,15 +952,19 @@ void add_potential_top_contributor (Top_Contributors *topList, float additional,
   }
 }
 
-/* Add additional similarity to a Doc_Sim, and update the top_contributors list
-   if this is a big contributer */
+/**
+   Add additional similarity to a Doc_Sim, and update the top_contributors list
+   if this is a big contributer
+*/
 void add_additional_to_doc_sim (Doc_Sim *thisSim, float additional, char *printname) {
   thisSim->sim += additional;
   add_potential_top_contributor (thisSim->top_contributors, additional, printname);
 }
 
-/* Add additional similarity to a Doc_Sim, and update the top_contributors list
-   if this is a big contributer */
+/**
+   Add additional similarity to a Doc_Sim, and update the top_contributors list
+   if this is a big contributer
+*/
 void add_maximum_to_doc_sim (Doc_Sim *thisSim, float newsim, char *printname) {
   if (thisSim->sim < newsim) {
     thisSim->sim = newsim;
@@ -952,7 +972,9 @@ void add_maximum_to_doc_sim (Doc_Sim *thisSim, float newsim, char *printname) {
   }
 }
 
-/* Merge two top contributor lists, giving the best hits of both.  Modifies list #1 */
+/**
+   Merge two top contributor lists, giving the best hits of both.  Modifies list #1
+*/
 void merge_top_contributors (Top_Contributors *tc1, Top_Contributors *tc2) {
   int i;
   for (i=0; i < NUMBER_CONTRIBUTORS_TRACKED; i++) {

@@ -57,16 +57,18 @@ void RetrieveError (int errcode, char *errstring);
 int SavantVerbose = 0, SavantDebug = 0, SavantFollowSymlinks = 0;
 UserVars Config;       /* Initialized in load_config */
 
-/* RetrieveError is Retrieve's error handler.  SavantError will
+/**
+  RetrieveError is Retrieve's error handler.  SavantError will
    point to it.  All it does is print the error string
-   and exit.  */
+   and exit.
+*/
 void RetrieveError (int errcode, char *errstring)
 {
   fprintf(stderr, "%s\n", errstring);
   exit(errcode);
 }
 
-void instructions(void)  
+void instructions(void)
 {
   fprintf(stderr,"%s\n", REMEM_VERSION);
   fprintf(stderr,"\nusage:\n");
@@ -76,7 +78,7 @@ void instructions(void)
   fflush(stderr);
 }
 
-void print_menu(void)  
+void print_menu(void)
 {
   printf("\n"
          "query [n]          : Find n most relevant documents to a query.  Default is 5.\n"
@@ -86,7 +88,10 @@ void print_menu(void)
          "info               : Display version and database info.\n"
          "quit               : Quit.\n"
 
-/*  These are advanced, and probably won't be used in interactive mode anyway.
+         /**
+            \todo The following options are available in interactive mode, but are not listed. Make sure that these are at least in the makefile.
+
+  These are advanced, and probably won't be used in interactive mode anyway.
 
          "print-biases       : List the handset query biases for each field defined in the template structure.\n"
          "use-handset-biases : Use handset biases instead of those defined by the query templates.\n"
@@ -109,7 +114,7 @@ enum Retrieve_Command get_command (int *argint, char *argstring) {
   fgets(command,128,stdin);
   argptr = strstr(command, "query");
 
-  if (argptr != NULL) {    
+  if (argptr != NULL) {
     *argint = atoi(argptr + 5);
     return(QUERY_COMMAND);
   }
@@ -150,7 +155,7 @@ enum Retrieve_Command get_command (int *argint, char *argstring) {
     if (spacepos1 != NULL) {
       spacepos2 = strchr(spacepos1+1, (int)' ');
       if (spacepos2 != NULL) {
-        strncpy(argstring, spacepos1+1, RA_MIN(MAX_FIELD_NAME_LENGTH, 
+        strncpy(argstring, spacepos1+1, RA_MIN(MAX_FIELD_NAME_LENGTH,
                                                (spacepos2 - spacepos1 - 1)));
         argstring[RA_MIN(MAX_FIELD_NAME_LENGTH, (spacepos2 - spacepos1 - 1))] = '\0';
         *argint = atoi(spacepos2 + 1);
@@ -197,7 +202,7 @@ void resetTopContributors (Top_Contributors *tc) {
 
 void resetDocSims(Remem_Hash_Table *docSims) {
   rememHashClear(docSims);
-} 
+}
 
 void resetDocSimsTotals(Remem_Hash_Table *docSims) {
   rememHashClear(docSims);
@@ -223,8 +228,10 @@ Remem_Hash_Table *initDocSimsTotal(int num_docs_total) {
   return(return_value);
 }
 
-/* Return the number of documents in the database, judging by the size
-   of the titles offset file */
+/**
+   Return the number of documents in the database, judging by the size
+   of the titles offset file
+*/
 int number_documents(char *db_dir) {
   FILE *TOFFS_FILE;
   int retval;
@@ -234,51 +241,56 @@ int number_documents(char *db_dir) {
   return(retval);
 }
 
-/* For qsort.  Note that we return -1 for docsim1 > docsim2, so 
-   that we get large-to-small ordering. */
+/**
+   For qsort.  Note that we return -1 for docsim1 > docsim2, so
+   that we get large-to-small ordering.
+*/
 int compareDocSims(const void *docsim1, const void *docsim2) {
   Doc_Sim *ds1, *ds2;
   ds1 = (Doc_Sim *)docsim1;
   ds2 = (Doc_Sim *)docsim2;
 
-  if (ds1->sim > ds2->sim) 
+  if (ds1->sim > ds2->sim)
     return -1;
   else if (ds1->sim < ds2->sim)
     return 1;
   else return 0;
 }
 
-/* For qsort.  Note that we return -1 for docsim1 > docsim2, so 
-   that we get large-to-small ordering. */
+/**
+   For qsort.  Note that we return -1 for docsim1 > docsim2, so
+   that we get large-to-small ordering.
+*/
 int compareDocSimsTotals(const void *docsim1, const void *docsim2) {
   Doc_Sim_Totals *ds1, *ds2;
   ds1 = (Doc_Sim_Totals *)docsim1;
   ds2 = (Doc_Sim_Totals *)docsim2;
 
-  if (ds1->docsim.sim > ds2->docsim.sim) 
+  if (ds1->docsim.sim > ds2->docsim.sim)
     return -1;
   else if (ds1->docsim.sim < ds2->docsim.sim)
     return 1;
   else return 0;
 }
 
-/* Apply biases to these doc sims 
+/**
+   Apply biases to these doc sims
 
    The query and index vectors each have associated biases attached to
    each of their fields, like so:
-     
+
      Query biases = q1, q2, ..., q{num_fields}
      Index biases = i1, i2, ..., i{num_fields}
-     
+
      Non-normalized biases = q1*i1, q2*i2, ...
-     
+
      Normalized biases = q1*i1/M, q2*i2/M, ...
-     where M = combined_bias_sum = q1*i1 + q2*i2 + ... 
+     where M = combined_bias_sum = q1*i1 + q2*i2 + ...
 
      Biased-sim = sim * normalized-bias
 */
- void bias_sims(Remem_Hash_Table *all_sims, 
-               List_of_General_Templates *All_General_Templates, 
+ void bias_sims(Remem_Hash_Table *all_sims,
+               List_of_General_Templates *All_General_Templates,
                Field *thisfield,
                int *querybiases,
                Retrieval_Database_Info *rdi,
@@ -350,26 +362,26 @@ int compareDocSimsTotals(const void *docsim1, const void *docsim2) {
     }
     else {
       if (sim_element->sim > 1.0) {
-	sim_element->sim = 1.0;
+        sim_element->sim = 1.0;
       }
       if (sim_element->sim > 0.0) {
-	T = docloc_templateno(rdi, sim_element->docnum);
-	F = thisfield->typenum;
+        T = docloc_templateno(rdi, sim_element->docnum);
+        F = thisfield->typenum;
 
-	sim_element->sim = sim_element->sim * combined_biases[T][F];
+        sim_element->sim = sim_element->sim * combined_biases[T][F];
       }
     }
   }
  }
 
-/* Do a sort on the top M doc-sims from the hash table, returning an
-   array of Doc_Sim_Totals of length M. 
+/**
+   Do a sort on the top M doc-sims from the hash table, returning an
+   array of Doc_Sim_Totals of length M.
    First just find the top M in any order, then do a q-sort on them.
 */
-
-Doc_Sim_Totals *sortDocSims(Remem_Hash_Table *docSims, 
-			    int num_docs_total, 
-			    int num_to_sort) {
+Doc_Sim_Totals *sortDocSims(Remem_Hash_Table *docSims,
+                            int num_docs_total,
+                            int num_to_sort) {
   int i,j, minindex;
   volatile float maxsim, minsim;
   Doc_Sim_Totals tempDocSim;
@@ -393,24 +405,25 @@ Doc_Sim_Totals *sortDocSims(Remem_Hash_Table *docSims,
     if (sim_total_element->docsim.sim > topSims[minindex].docsim.sim) {
       memcpy(&(topSims[minindex]), sim_total_element, sizeof(Doc_Sim_Totals));
       for (i=1, minsim = topSims[0].docsim.sim, minindex=0;
-	   i<num_to_sort; i++) {
-	if (topSims[i].docsim.sim < topSims[minindex].docsim.sim) {
-	  minindex = i;
-	  minsim = topSims[i].docsim.sim;
-	}
+           i<num_to_sort; i++) {
+        if (topSims[i].docsim.sim < topSims[minindex].docsim.sim) {
+          minindex = i;
+          minsim = topSims[i].docsim.sim;
+        }
       }
     }
   }
-  qsort((void *)topSims, 
-	num_to_sort, 
-	sizeof(Doc_Sim_Totals), 
-	&compareDocSimsTotals);
+  qsort((void *)topSims,
+        num_to_sort,
+        sizeof(Doc_Sim_Totals),
+        &compareDocSimsTotals);
 
   return(topSims);
 }
 
-/* Figure out similarity for all fields, given this query and all documents.
-   This includes figuring out biases.  Return info in total_sims, sorted by similarity. 
+/**
+   Figure out similarity for all fields, given this query and all documents.
+   This includes figuring out biases.  Return info in total_sims, sorted by similarity.
 
    Method:
    for each field:
@@ -418,18 +431,19 @@ Doc_Sim_Totals *sortDocSims(Remem_Hash_Table *docSims,
        Update similarities for this word
      bias the similarities for this field
    sort the results & return them as an array of Doc_Sim_Totals of
-   length number_docs_being_printed */
-Doc_Sim_Totals *rank_docs_for_fields(Remem_Hash_Table *total_sims, 
+   length number_docs_being_printed
+*/
+Doc_Sim_Totals *rank_docs_for_fields(Remem_Hash_Table *total_sims,
                           Remem_Hash_Table *all_sims,
-                          Doc_Info *queryInfo, 
+                          Doc_Info *queryInfo,
                           General_Template *query_template,
                           List_of_General_Templates *All_General_Templates,
-			  Retrieval_Database_Info *rdi,
+                          Retrieval_Database_Info *rdi,
                           int number_docs_being_printed,
                           int *querybiases) {
   void *(*nextword)(void *fielddata, int reset_p) = NULL;
   void (*update_sims_word)(void *word, Remem_Hash_Table *all_sims, void *self,
-			   Retrieval_Database_Info *rdi) = NULL;   
+                           Retrieval_Database_Info *rdi) = NULL;
   int fieldnum, i;
   void *newword = NULL;
   int wordweight = 0;
@@ -439,9 +453,9 @@ Doc_Sim_Totals *rank_docs_for_fields(Remem_Hash_Table *total_sims,
   Doc_Sim *sim_element;
 
   /* Find and add in a similarity for each field */
-  for (fieldnum = 0; 
-       ((fieldnum < MAX_NUMBER_FIELDS) && 
-	(query_template->fields[fieldnum] != NULL)); 
+  for (fieldnum = 0;
+       ((fieldnum < MAX_NUMBER_FIELDS) &&
+        (query_template->fields[fieldnum] != NULL));
        fieldnum++) {
     thisfield = query_template->fields[fieldnum]->field;
 
@@ -449,56 +463,58 @@ Doc_Sim_Totals *rank_docs_for_fields(Remem_Hash_Table *total_sims,
     update_sims_word = thisfield->update_sims_word;
 
     /* Skip if don't have functions defined */
-    if ((nextword != NULL) && (update_sims_word != NULL)) {      
+    if ((nextword != NULL) && (update_sims_word != NULL)) {
       newword = nextword(queryInfo->parsedfields[fieldnum], 1);
 
       /* If no word at all, go on to next field */
-      if (newword != NULL) {                      
+      if (newword != NULL) {
         while (newword != NULL) {
           update_sims_word(newword, all_sims, thisfield, rdi);
           free(newword);
           newword = nextword(queryInfo->parsedfields[fieldnum], 0);
-        }      
-        
-	/* modify the sims to handle index and query weights (biases) */
-        bias_sims(all_sims, All_General_Templates, thisfield, 
+        }
+
+        /* modify the sims to handle index and query weights (biases) */
+        bias_sims(all_sims, All_General_Templates, thisfield,
                   querybiases, rdi, newquery_p);
         newquery_p = 0;
-        
-	/* For each similarity of this field, add it to the total_sims
-	   hash table. */
-	for (sim_element = (Doc_Sim *)rememHashItterate(all_sims,1);
-	     sim_element != NULL;
-	     sim_element = (Doc_Sim *)rememHashItterate(all_sims,0)) {
-	  if (sim_element->sim > 0.0) {
-	    sim_total_element = 
-	      (Doc_Sim_Totals *)rememHashGet(sim_element->docnum, total_sims);
 
-	    /* If not in the totals hash table yet, put it there */
-	    if (sim_total_element == NULL) {
-	      sim_total_element = 
-		(Doc_Sim_Totals *)calloc(1,sizeof(Doc_Sim_Totals));
-	      sim_total_element->docsim.docnum = sim_element->docnum;
-	      rememHashPut(sim_element->docnum, sim_total_element, total_sims);
-	    }
-	    
-	    sim_total_element->docsim.sim += sim_element->sim;
-	    sim_total_element->sim_breakdown[thisfield->typenum] +=
-	      sim_element->sim;
-	    merge_top_contributors(sim_total_element->docsim.top_contributors,
-				   sim_element->top_contributors);
-	    sim_element->sim = 0.0;
-	    resetTopContributors(sim_element->top_contributors);
-	  }
-	}
+        /* For each similarity of this field, add it to the total_sims
+           hash table. */
+        for (sim_element = (Doc_Sim *)rememHashItterate(all_sims,1);
+             sim_element != NULL;
+             sim_element = (Doc_Sim *)rememHashItterate(all_sims,0)) {
+          if (sim_element->sim > 0.0) {
+            sim_total_element =
+              (Doc_Sim_Totals *)rememHashGet(sim_element->docnum, total_sims);
+
+            /* If not in the totals hash table yet, put it there */
+            if (sim_total_element == NULL) {
+              sim_total_element =
+                (Doc_Sim_Totals *)calloc(1,sizeof(Doc_Sim_Totals));
+              sim_total_element->docsim.docnum = sim_element->docnum;
+              rememHashPut(sim_element->docnum, sim_total_element, total_sims);
+            }
+
+            sim_total_element->docsim.sim += sim_element->sim;
+            sim_total_element->sim_breakdown[thisfield->typenum] +=
+              sim_element->sim;
+            merge_top_contributors(sim_total_element->docsim.top_contributors,
+                                   sim_element->top_contributors);
+            sim_element->sim = 0.0;
+            resetTopContributors(sim_element->top_contributors);
+          }
+        }
       }
     }
   }
-  return(sortDocSims(total_sims, rdi->number_documents_total, 
-		     number_docs_being_printed));
+  return(sortDocSims(total_sims, rdi->number_documents_total,
+                     number_docs_being_printed));
 }
 
-/* Set querybiases to the defaults set in tfi */
+/**
+   Set querybiases to the defaults set in tfi
+*/
 void set_querybiases (int *querybiases, Template_Field_Info **tfi) {
   int i;
   for (i=0; i < MAX_NUMBER_FIELDS; i++) {
@@ -510,8 +526,10 @@ void set_querybiases (int *querybiases, Template_Field_Info **tfi) {
 }
 
 
-/* print a particular document. */
-void document_name_and_offsets (int docnum, 
+/**
+   print a particular document.
+*/
+void document_name_and_offsets (int docnum,
                                 Retrieval_Database_Info *rdi,
                                 char *docfilename,
                                 DB_INT *doc_start,
@@ -522,9 +540,9 @@ void document_name_and_offsets (int docnum,
 
   DB_INT dloff_low, dloff_high, template_number;
 
-  if (DOCLOC_FILE == NULL) 
+  if (DOCLOC_FILE == NULL)
     DOCLOC_FILE = open_or_die(rdi->db_dir, DOCLOC_FNAME, "r");
-  if (DLOFFS_FILE == NULL) 
+  if (DLOFFS_FILE == NULL)
     DLOFFS_FILE = open_or_die(rdi->db_dir, DLOFFS_FNAME, "r");
 
   if (endDoclocFile == -1) endDoclocFile = ftell_end(DOCLOC_FILE);
@@ -542,10 +560,12 @@ void document_name_and_offsets (int docnum,
 }
 
 
-/* print the top n document titles.  Doc_Sim is presumed sorted. */
-void print_top_docs(Doc_Sim_Totals *all_sims, 
-		    int numDocsToPrint,
-		    Retrieval_Database_Info *rdi) {
+/**
+  print the top n document titles.  Doc_Sim is presumed sorted.
+*/
+void print_top_docs(Doc_Sim_Totals *all_sims,
+                    int numDocsToPrint,
+                    Retrieval_Database_Info *rdi) {
   static FILE *TITLES_FILE = NULL;
   static FILE *TOFFS_FILE = NULL;
   static long endTitlesFile = -1;
@@ -557,15 +577,15 @@ void print_top_docs(Doc_Sim_Totals *all_sims,
   long toff, toff_high;
   size_t length;
 
-  if (TITLES_FILE == NULL) 
+  if (TITLES_FILE == NULL)
     TITLES_FILE = open_or_die(rdi->db_dir, TITLES_FNAME, "r");
 
-  if (TOFFS_FILE == NULL) 
+  if (TOFFS_FILE == NULL)
     TOFFS_FILE = open_or_die(rdi->db_dir, TOFFS_FNAME, "r");
 
   if (endTitlesFile == -1) endTitlesFile = ftell_end(TITLES_FILE);
 
-  for (i=0; ((i < numDocsToPrint) && 
+  for (i=0; ((i < numDocsToPrint) &&
              (i < rdi->number_documents_total) &&
              (all_sims[i].docsim.sim > 0.0));
        i++) {
@@ -605,7 +625,9 @@ void print_top_docs(Doc_Sim_Totals *all_sims,
   fflush(stdout);
 }
 
-/* Print the contents of the given docnum.  Executed by a retrieve command or with the --docnum commandline arg */
+/**
+   Print the contents of the given docnum.  Executed by a retrieve command or with the --docnum commandline arg
+*/
 void print_document_contents (int docnum, Retrieval_Database_Info *rdi) {
   FILE *RetrievedFile;
   char *retrievebuf;
@@ -677,21 +699,21 @@ int main(int argc, char *argv[]) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
       case 'c':
-	if (config_name == NULL) {
-	  config_name = argv[++i];
-	}
-	else {
-	  instructions();
+        if (config_name == NULL) {
+          config_name = argv[++i];
+        }
+        else {
+          instructions();
           SavantError(EINVAL, "");
-	  /* exit(-1); */
-	}
-	break;
+          /* exit(-1); */
+        }
+        break;
       case 'v':
-	SavantVerbose = 1;
-	break;
+        SavantVerbose = 1;
+        break;
       case 'd':
-	SavantDebug = 1;
-	break;
+        SavantDebug = 1;
+        break;
       case '-':
         if (strcmp(argv[i], "--version")==0) {
           printf("%s\n", REMEM_VERSION);
@@ -705,11 +727,11 @@ int main(int argc, char *argv[]) {
           }
         }
         break;
-        
+
       default:
-	instructions();
+        instructions();
         SavantError(EINVAL, "");
-	/* exit(-1); */
+        /* exit(-1); */
       }
     }
     else if (db_name == NULL) {
@@ -773,80 +795,72 @@ int main(int argc, char *argv[]) {
   all_sims = initDocSims(rdi->number_documents_total);
   total_sims = initDocSimsTotal(rdi->number_documents_total);
 
-/*
+/**
+   \todo Remove the information about the old hierarchy
+
+## Old Hierarchy
+
 OK, here's the old call-herarchy for retrieve.  It's ugly.
 
-main: handle all the command-line args and initialize variables
+- main: handle all the command-line args and initialize variables
 
-  init_read: open all the index files, and read in all the docvec
-  magnitudes.  Also reads in the window map info.  (this is
-  basically stuff that is needed for each search, in theory at
-  least).
+    - init_read: open all the index files, and read in all the docvec magnitudes.  Also reads in the window map info.  (this is basically stuff that is needed for each search, in theory at least).
 
-  savant_retrieve: load in all the bias info.  This is presumably
-  also a one-shot (like the stuff loaded by init_read).  Enter the
-  main query loop for retrieve.
+    - savant_retrieve: load in all the bias info.  This is presumably also a one-shot (like the stuff loaded by init_read).  Enter the main query loop for retrieve.
 
-    get_query: parse the query, and break into types
-      
-      vectorize_buffer: actually encode the words, throw out stop
-      words, stem, etc.  Call dvtree_increment to store the code in
-      the DV_Tree "tree" for this vector, and return that tree.
+      - get_query: parse the query, and break into types
 
-      merge_dvtrees: merge different fieldtypes into a single docvec
+        - vectorize_buffer: actually encode the words, throw out stop words, stem, etc.  Call dvtree_increment to store the code in the DV_Tree "tree" for this vector, and return that tree.
 
-    find_matches: figures out the term weight for each word/term.
-    Remember best matches so you can print the terms later
+        - merge_dvtrees: merge different fieldtypes into a single docvec
 
-      update_matches: called once for each unique word in the query.
-      It goes through the supplied wordvec and adds appropriate
-      similarity contributions to the appropriate slots in all_sims.
+      - find_matches: figures out the term weight for each word/term.  Remember best matches so you can print the terms later
 
-        sim_contrib: takes a single doc-ID/word-frequency pair from a
-        retrieved wordvec and, using some other extenuating
-        information, deciding how much it will contribute to that
-        document's similarity rating.  Does the logs, chopping
-        algorithm, & stuff like that.  Also applies bias info here.
+        - update_matches: called once for each unique word in the query.  It goes through the supplied wordvec and adds appropriate similarity contributions to the appropriate slots in all_sims.
 
-    print_suggestions:  Print them out.
+          - sim_contrib: takes a single doc-ID/word-frequency pair from a retrieved wordvec and, using some other extenuating information, deciding how much it will contribute to that document's similarity rating.  Does the logs, chopping algorithm, & stuff like that.  Also applies bias info here.
+
+      - print_suggestions:  Print them out.
+
 
 -------------------------------------------------------------
-New system:
 
-main: handle all the command-line args and initialize vars.  Load config info,
+## New system:
+
+- main: handle all the command-line args and initialize vars.  Load config info,
 which includes a seperate retrieval template.  (same fieldtypes as indexing, different
 templates & regexps.)
 
-  command_loop: get the command (e.g. query, print, etc)
+  - command_loop: get the command (e.g. query, print, etc)
     get_query: read in the query itself into a GBuffer.  No processing yet.
     recognize_query: recognize the query type.  Like recognize_file, but with whole query.
     find_fields: find each field contents and put in a growbuffer.
 
-    for each field:
+    - for each field:
       parser: run the parser procedure on the query, take the output (e.g. a docvec).
 
-      rank_documents: given the parsed info, individual word
+      - rank_documents: given the parsed info, individual word
       similarity plugin, and multi-word sim. plugin rank each document
       and store in document order.  Keep track of the top K words that
       are most relevant for this field.
 
-        single-word-metric: compute the relevance of a single word
+        - single-word-metric: compute the relevance of a single word
         weight in a query to that word's weight in a document.
 
-        multi-word-metric: given a vector of similarities produced by
+        - multi-word-metric: given a vector of similarities produced by
         the single-word-metric, what's the similarity between two
         vectors.
 
-    Once for the query:
-      merge_field_rankings: given several document rankings, merge
+    - Once for the query:
+      - merge_field_rankings: given several document rankings, merge
       them to a single one using query biases.
 
-      print_suggestions: print the titles/info for the top N
+      - print_suggestions: print the titles/info for the top N
       documents.  Also print out the top K words that were most
       relevant for each suggested document being chosen.
 
 */
-  
+
   if(SavantVerbose || SavantDebug) {
     print_menu();
   }
@@ -876,23 +890,23 @@ templates & regexps.)
 
       if (SavantDebug) print_doc_info(&queryInfo, template);
 
-      sorted_sims_array = rank_docs_for_fields (total_sims, 
-						all_sims, 
-						&queryInfo, 
-						template, 
-						All_General_Templates,
-						rdi, 
-						command_arg,
-						(override_query_biases ?
-						 handsetbiases : querybiases));
+      sorted_sims_array = rank_docs_for_fields (total_sims,
+                                                all_sims,
+                                                &queryInfo,
+                                                template,
+                                                All_General_Templates,
+                                                rdi,
+                                                command_arg,
+                                                (override_query_biases ?
+                                                 handsetbiases : querybiases));
 
       print_top_docs(sorted_sims_array, command_arg, rdi);
       free(sorted_sims_array);
       cleanup_fields(&queryInfo, template);
 
       /* Clean it now so we don't have to later */
-      resetDocSimsTotals(total_sims);   
-      resetDocSims(all_sims);   
+      resetDocSimsTotals(total_sims);
+      resetDocSims(all_sims);
 
       break;
 
@@ -920,7 +934,7 @@ templates & regexps.)
 
     case SET_BIAS_COMMAND:
       thisfield = get_field_from_allfields(All_Fields, command_argstring);
-      if (thisfield == NULL) 
+      if (thisfield == NULL)
         printf("Can't find field named \"%s\"\n", command_argstring);
       else {
         handsetbiases[thisfield->typenum] = command_arg;
@@ -930,10 +944,10 @@ templates & regexps.)
 
     case PRINT_BIASES:
       for (i=0; i < MAX_NUMBER_FIELDS; i++) {
-        if (All_Fields->field[i] != NULL) 
+        if (All_Fields->field[i] != NULL)
           printf("%s: %d\n", All_Fields->field[i]->printname, handsetbiases[i]);
       }
-      if (override_query_biases) 
+      if (override_query_biases)
         printf("Handset biases USED\n");
       else
         printf("Handset biases INACTIVE (using template biases instead)\n");
@@ -948,7 +962,7 @@ templates & regexps.)
       override_query_biases = 0;
       if (SavantVerbose) { printf("Handset biases INACTIVE (using template biases instead)\n"); }
       break;
-            
+
     case DB_INFO_COMMAND:
       printf("Version: %s, Number documents: %d\n", REMEM_VERSION_NUMBER, rdi->number_documents_total);
       break;
@@ -990,7 +1004,7 @@ void check_index_mod_for_reset (Retrieval_Database_Info *rdi) {
   strcat(doclocfile, DOCLOC_FNAME);
 
   stat(doclocfile, &statbuf);
-  if (statbuf->st_mtime != rdi->modtime) {   
+  if (statbuf->st_mtime != rdi->modtime) {
     rdi->number_documents_total = number_documents(rdi->db_dir);
   }
 }

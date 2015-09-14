@@ -66,26 +66,28 @@ typedef struct _List_of_Filenames {
 } List_of_Filenames;
 
 
-/* Doc_Info contains all the info you might want about a document or query.  
+/**
+   Doc_Info contains all the info you might want about a document or query.
    When used on a query, docnum, doc_start, doc_end, and filename are meaningless
-   and are ignored */
+   and are ignored
+*/
 typedef struct _Doc_Info {
   DB_UINT docnum;               /* The docnum for this document.
-                                   Numbers are assigned serially 
+                                   Numbers are assigned serially
                                    starting at 0. */
-  unsigned int doc_start;       /* The offset from the start of the 
-				   file for the start of this doc 
-				   (0 = from start) */
-  unsigned int doc_end;         /* The offset from the start of the file 
-				   for the end of this doc */
-  char *filename;               /* The expanded filename for this particular 
-				   file */
+  unsigned int doc_start;       /* The offset from the start of the
+                                   file for the start of this doc
+                                   (0 = from start) */
+  unsigned int doc_end;         /* The offset from the start of the file
+                                   for the end of this doc */
+  char *filename;               /* The expanded filename for this particular
+                                   file */
   GBuffer *documentText;        /* The document itself */
-  GBuffer *fields[MAX_NUMBER_FIELDS];  /* The text in each field, in order 
-					  specified in the template */
-  void *parsedfields[MAX_NUMBER_FIELDS];  /* Parsed info for each field 
-					     (from calling the parser for 
-					     this field) */
+  GBuffer *fields[MAX_NUMBER_FIELDS];  /* The text in each field, in order
+                                          specified in the template */
+  void *parsedfields[MAX_NUMBER_FIELDS];  /* Parsed info for each field
+                                             (from calling the parser for
+                                             this field) */
 } Doc_Info;
 
 int is_bin_file_p(char *);
@@ -94,7 +96,7 @@ int string_present_p(char *string, char **strings);
 
 void get_filenames(char *sources[], char *excludees[]);
 
-List_of_Filenames *get_files_from_directory(char *sourcename, 
+List_of_Filenames *get_files_from_directory(char *sourcename,
                                             char **excludees);
 
 
@@ -105,11 +107,12 @@ General_Template *recognize_file (FILE *file,
 
 General_Template *recognize_query(GBuffer query, List_of_General_Templates *current_template);
 
-/* Find the next doc in a file.  documentText is the text from this
+/**
+   Find the next doc in a file.  documentText is the text from this
    current doc.  target_template is the template for this particular
    file's type.  file_ptr is the pointer to the file in question.  start
-   and end will be filled with the start and end offsets in documentText */
-
+   and end will be filled with the start and end offsets in documentText
+*/
 void find_next_doc(GBuffer *documentText,     /* The text read in from the document.  Modified to eat docs each run. */
                    Doc_Info *document,           /* we fill in this document into document->documentText */
                    General_Template *target_template, /* Which template is this file? */

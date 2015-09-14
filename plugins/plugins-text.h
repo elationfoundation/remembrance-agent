@@ -35,36 +35,45 @@ USA.
 */
 #include "conftemplates.h"
 
-/*** Wordcodes are unsigned int arrays of width WORD_ENCODE_WIDTH ****/
+/**
+   Wordcodes are unsigned int arrays of width WORD_ENCODE_WIDTH
+*/
 typedef DB_UINT * Wordcode;
 
 #define WORD_ENCODE_WIDTH 3  /* number bytes per word in a wordvec */
 
-/* DO NOT CHANGE THIS FROM 6.  It's not known if the algorithm
+/**
+   DO NOT CHANGE THIS FROM 6.  It's not known if the algorithm
    actually -works- if this isn't 6, and there may be places in the
    code that use some knowledge of the fact that this is 6 without
-   actually referring to CHARACTER_ENCODE_WIDTH.  Eit.  */
+   actually referring to CHARACTER_ENCODE_WIDTH.  Eit.
+*/
 #define CHARACTER_ENCODE_WIDTH 6  /* number of bits per character in a packed wordvec */
 
-/* maximum number of unique non-stop words (after filtering) that are looked 
-   at in indexing and retrieval in a given text field. This is counted from the 
+/**
+   maximum number of unique non-stop words (after filtering) that are looked
+   at in indexing and retrieval in a given text field. This is counted from the
    beginning of the document, and is meant to get around the fact that super long
    documents both seem to come up too often (the weighting schemes aren't normalizing
    against doc length well enough) and if your query is relevant to something in the middle
-   of the document that doesn't help you much anyway. 
+   of the document that doesn't help you much anyway.
 
    If zero, there's no max.
 */
-#define MAX_NUMBER_WORDS_PER_INDEXED_FIELD 500 
+#define MAX_NUMBER_WORDS_PER_INDEXED_FIELD 500
 
-/* A list of documents, with weights for each.  Used by DV_Tree structure, below. */
+/**
+   A list of documents, with weights for each.  Used by DV_Tree structure, below.
+*/
 typedef struct _Doc_List {
   DB_UINT docnum;
   DB_UINT weight;
   struct _Doc_List *next;
 } Doc_List;
 
-/* tree rep of a multi-document Vector, with wordcodes as sorting keys */
+/**
+   tree rep of a multi-document Vector, with wordcodes as sorting keys
+*/
 typedef struct _DV_Tree {
   unsigned int wordcode[WORD_ENCODE_WIDTH];
   char printword[PRINTWORD_LENGTH + 1];
@@ -73,8 +82,10 @@ typedef struct _DV_Tree {
   struct _DV_Tree *right;
 } DV_Tree;
 
-/* rep for a single text document.  This consists of a docvec containing the
-   words plus agregate info like doc length */
+/**
+   rep for a single text document.  This consists of a docvec containing the
+   words plus agregate info like doc length
+*/
 typedef struct _Text_Document_Field {
   DB_UINT docnum;  /* Docnum for this particular document */
   DB_UINT length;  /* Number of unique words in this field of this doc */
@@ -83,7 +94,9 @@ typedef struct _Text_Document_Field {
   DV_Tree *tree;   /* The words in this field of this document */
 } Text_Document_Field;
 
-/* Info on a specific word in a query (passed from nextword_text to update_sims_word_text) */
+/**
+   Info on a specific word in a query (passed from nextword_text to update_sims_word_text)
+*/
 typedef struct _Text_Word_Info {
   Wordcode word;
   char printword[PRINTWORD_LENGTH];    /* printable string for this word (used for user feedback of a query) */
@@ -91,7 +104,9 @@ typedef struct _Text_Word_Info {
   int length;          /* Number unique terms in this document, used for normalization */
 } Text_Word_Info;
 
-/* This contains all the info the text algorithm might need */
+/**
+   This contains all the info the text algorithm might need
+*/
 typedef struct _Text_Doc_Info {
   int number_documents;
   DB_UINT *document_lengths;    /* Sparse array of document length
@@ -109,14 +124,15 @@ typedef struct _Text_Doc_Info {
 #define DOCLEN_FNAME "doclens"
 
 
-/* Some other prototypes, from parsers-text.c */
-
-int wordcode_cpy(Wordcode dest,	Wordcode source);
+/**
+   Some other prototypes, from parsers-text.c
+*/
+int wordcode_cpy(Wordcode dest, Wordcode source);
 int wordcode_cmp(Wordcode code1, Wordcode code2);
 
 int add_document_to_dvtree(DV_Tree **target, DV_Tree *documentTree);
 
-void encode_text_word(unsigned char *s, 
+void encode_text_word(unsigned char *s,
                       unsigned int * code,
                       unsigned int field_type);
 

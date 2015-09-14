@@ -39,11 +39,16 @@ USA.
 #include <savutil.h>
 #include "hash.h"
 
-/* Yet another hash-table implementation.  This one is probably not very good,
-   but I'm in a hurry.  Sigh.  
+/**
+   \todo find a replacement hash-table implementation
+
+  Yet another hash-table implementation.  This one is probably not very good,
+   but I'm in a hurry.  Sigh.
 */
 
-/* Return a key for a given element int.  This is butt simple. */
+/**
+   Return a key for a given element int.  This is butt simple.
+*/
 long rememHashBucket (long key, Remem_Hash_Table *table) {
   return (key % table->numberBuckets);
 }
@@ -55,7 +60,7 @@ Remem_Hash_Table *rememHashCreateTable(int numBuckets) {
   newTable = (Remem_Hash_Table *)malloc(sizeof(Remem_Hash_Table));
   newTable->numberBuckets = numBuckets;
   newTable->listOfBuckets = (Remem_Bucket **)malloc(numBuckets * sizeof(Remem_Bucket *));
-  
+
   for (i=0; i < numBuckets; i++) {
     newTable->listOfBuckets[i] = NULL;
   }
@@ -64,7 +69,9 @@ Remem_Hash_Table *rememHashCreateTable(int numBuckets) {
   return(newTable);
 }
 
-/* add an element to the hashtable with given key */
+/**
+   add an element to the hashtable with given key
+*/
 void rememHashPut (long key, void *element, Remem_Hash_Table *table) {
   Remem_Bucket *temp_bucket;
   long bucketno;
@@ -79,7 +86,9 @@ void rememHashPut (long key, void *element, Remem_Hash_Table *table) {
   table->listOfBuckets[bucketno]->next = temp_bucket;
 }
 
-/* get an element from a hashtable */
+/**
+   get an element from a hashtable
+*/
 void *rememHashGet (long key, Remem_Hash_Table *table) {
   Remem_Bucket *nextElement;
   long bucketno;
@@ -89,14 +98,16 @@ void *rememHashGet (long key, Remem_Hash_Table *table) {
   for ((nextElement = table->listOfBuckets[bucketno]);
        ((nextElement != NULL) && (nextElement->key != key));
        nextElement = nextElement->next);
-  if (nextElement == NULL) 
+  if (nextElement == NULL)
     return(NULL);
   else
     return(nextElement->element);
 }
 
 
-/* Itterate through all elements of a table */
+/**
+   Itterate through all elements of a table
+*/
 /* If reset_p != 0, start over at first element */
 void *rememHashItterate (Remem_Hash_Table *table, int reset_p) {
   void *elt;
@@ -106,8 +117,8 @@ void *rememHashItterate (Remem_Hash_Table *table, int reset_p) {
     table->nextInList = NULL;
   }
   /* We were at the end of a bucket last time */
-  while ((table->nextInList == NULL) && 
-	 (table->nextBucketno < (table->numberBuckets - 1))) {
+  while ((table->nextInList == NULL) &&
+         (table->nextBucketno < (table->numberBuckets - 1))) {
     table->nextBucketno++;
     table->nextInList = table->listOfBuckets[table->nextBucketno];
   }
@@ -124,9 +135,11 @@ void *rememHashItterate (Remem_Hash_Table *table, int reset_p) {
 }
 
 
-/* Empty the hash table and free memory.
+/**
+   Empty the hash table and free memory.
    Freeing a hash table object after doing a Clear
-   will not leave memory leaks */
+   will not leave memory leaks
+*/
 void rememHashClear(Remem_Hash_Table *table) {
   int i;
   Remem_Bucket *nextbucket, *tempbucket;

@@ -35,13 +35,13 @@ USA.
 #include <regex.h>
 #include <errno.h>
 
-/* takes in a regular expression regexp, a string target, and an integer length_to_search.
+/**
+   takes in a regular expression regexp, a string target, and an integer length_to_search.
 
    scans the first length_to_search characters of target, and attempts to match regexp to
    them.  if regexp is found, sets start and end equal to the first character of the match
    and the last character of the match, respectively.
 */
-
 void regex_find(char *regexp, char *target, int length_to_search, int *start, int *end)
 {
   const char *errptr;
@@ -74,10 +74,12 @@ void regex_find(char *regexp, char *target, int length_to_search, int *start, in
 }
 
 
-/*  at some point, code should be introduced to utilize the pcre_study command */
-/*  because it will give us a little speed bonus... */
+/**
+   \todo  at some point, code should be introduced to utilize the pcre_study command  because it will give us a little speed bonus...
+*/
 
-/* takes in an array of regexps and a GBuffer target.
+/**
+   takes in an array of regexps and a GBuffer target.
 
    scans through target and removes every occurrance of every regexp
    from target.
@@ -116,26 +118,16 @@ void regex_filter(char **regexps, GBuffer *target) {
       groups_matched = pcre_exec(pattern, NULL, ptr, strlen(ptr), 0, 0, vector, 256);
 
       if (vector[0] >= 0) {
-	strncat(temp_string, ptr, vector[0]);
-	ptr = ptr + vector[1] * sizeof(char);
+        strncat(temp_string, ptr, vector[0]);
+        ptr = ptr + vector[1] * sizeof(char);
       }
     }
     strcat(temp_string, ptr);
     strncpy_GBuffer(target, temp_string, strlen(temp_string));
-    pcre_free(pattern); 
+    pcre_free(pattern);
   }
-  
+
   free(temp_string);
- 
+
   return;
 }
-
-
-
-
-
-
-
-
-
-

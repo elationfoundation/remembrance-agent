@@ -40,7 +40,9 @@ USA.
 #define MAX_DOC_MEMORY 10000000    /* number bytes to use for document vectors
                                       before checkpointing to disk */
 
-/* A list of documents, with weights for each.  Used by Date_Tree structure, below. */
+/**
+   A list of documents, with weights for each.  Used by Date_Tree structure, below.
+*/
 typedef struct _Date_Doc_List {
   DB_UINT docnum;
   struct _Date_Doc_List *next;

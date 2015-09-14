@@ -56,18 +56,24 @@ extern int SavantVerbose, SavantDebug;
 #define NUMBER_CONTRIBUTORS_TRACKED 5  /* Number of contributors kept track of for user feedback */
 #define PRINTWORD_LENGTH 15  /* number of characters to use for a printable version of a "word" in feedback */
 
-/* Title default information: what should we use for a field entry in a title
-   if the field is blank? */
+/**
+   Title default information: what should we use for a field entry in a title
+   if the field is blank?
+*/
 enum Title_Defaults_Type {BLANK_TITLE, FILENAME_TITLE, OWNER_TITLE,
-			  MODTIME_TITLE};
+                          MODTIME_TITLE};
 
-/* Contains the elements ("words") that contributed the most to a single contributor */
+/**
+   Contains the elements ("words") that contributed the most to a single contributor
+*/
 typedef struct _Top_Contributors {
   float sim;                           /* Similarity this contributed */
   char printword[PRINTWORD_LENGTH];    /* What is this word anyway? */
 } Top_Contributors;
 
-/* Mentioned in Field typedef -- used in retrieval */
+/**
+   Mentioned in Field typedef -- used in retrieval
+*/
 typedef struct _Doc_Sim {
   DB_UINT docnum;
   float sim;           /* number between 0.0 and 1.0 */
@@ -75,22 +81,28 @@ typedef struct _Doc_Sim {
   Top_Contributors top_contributors[NUMBER_CONTRIBUTORS_TRACKED];
 } Doc_Sim;
 
-/* The docsim, plus a breakdown of how each field contributed */
+/**
+   The docsim, plus a breakdown of how each field contributed
+*/
 typedef struct _Doc_Sim_Totals {
   Doc_Sim docsim;
   float sim_breakdown[MAX_NUMBER_FIELDS];
 } Doc_Sim_Totals;
 
 
-/* This is all the info about the index database that you might want to compute
+/**
+   This is all the info about the index database that you might want to compute
    once and pass to updaters.  Generic info only (no fieldtype specific
-   stuff) */
+   stuff)
+*/
 typedef struct _Retrieval_Database_Info {
   int number_documents_total;   /* Total number of documents */
   char *db_dir; /* Expanded path of index files */
 } Retrieval_Database_Info;
 
-/* All the user-preferance variables (1 = true, 0 = false) */
+/**
+   All the user-preferance variables (1 = true, 0 = false)
+*/
 typedef struct {
   int source_field_width;
   int ellipses;
@@ -99,10 +111,12 @@ typedef struct {
 
 extern UserVars Config;
 
-/* Field: info on a generic field (independent of what file type it's in) */
+/**
+   Field: info on a generic field (independent of what file type it's in)
+*/
 typedef struct Field {
   DB_UINT typenum;        /* Number used in 6-bit type field, and
-			     index into Array_of_Field_Types */
+                             index into Array_of_Field_Types */
   char *printname;        /* Printable name of field, e.g. "BODY" */
   enum Title_Defaults_Type titleDefault;  /* what to do in title if blank */
   /* Parser is a function that takes field data (e.g. a string of
@@ -114,17 +128,17 @@ typedef struct Field {
   void *(*parser)(char *fielddata, void *self, DB_UINT docnum);
   GBuffer *(*deparser)(void *parseddata, void *self); /* Function that takes the output of the parser program and
                                                       returns a human-readable version of the data */
-  void (*index_store)(void *parseddata,  
+  void (*index_store)(void *parseddata,
                       char *filename,
                       int last_write_p); /* Function that takes whatever type is returned by the parser
-                                            and stores it in the appropriate structure, for later writing 
+                                            and stores it in the appropriate structure, for later writing
                                             to disk.  doc_start is the file offset for the start of this particular doc,
                                             doc_end is the end of this doc. */
-  void *(*nextword)(void *parseddata, 
+  void *(*nextword)(void *parseddata,
                     int reset_p);  /* ittorator that takes type returned by parser and returns the next
                                       "word" in the series.  If reset_p != 0, restart at the beginning of the list. */
-  void (*update_sims_word)(void *word, 
-                           Remem_Hash_Table *all_sims, 
+  void (*update_sims_word)(void *word,
+                           Remem_Hash_Table *all_sims,
                            void *self,
                            Retrieval_Database_Info *rdi);
                        /* Function that takes a word (returned by
@@ -136,7 +150,9 @@ typedef struct Field {
 } Field;
 
 
-/* Template_Field_Info: info on a field specific to a type of file (e.g. HTML) */
+/**
+   Template_Field_Info: info on a field specific to a type of file (e.g. HTML)
+*/
 typedef struct _Template_Field_Info {
   Field *field;             /* Pointer to the generic field info */
   char *id_regexp;          /* Regexp to find this field in a document */
@@ -147,13 +163,19 @@ typedef struct _Template_Field_Info {
   int title_length;         /* Number of characters to print out in the titles file for this field */
 } Template_Field_Info;
 
-/* Actions: What to do with a template (currently only "Reject" and "Accept") */
+/**
+   Actions: What to do with a template (currently only "Reject" and "Accept")
+*/
 enum Action_Types {REJECT_ACTION, ACCEPT_ACTION};
 
-/* Template types: When is this template used?  (currently only "index" and "retrieve") */
+/**
+   Template types: When is this template used?  (currently only "index" and "retrieve")
+*/
 enum Template_Types {INDEX_TYPE, QUERY_TYPE};
 
-/* Template: all the info on how to parse a particular kind of file (e.g. "HTML") */
+/**
+   Template: all the info on how to parse a particular kind of file (e.g. "HTML")
+*/
 typedef struct {
   DB_INT typenum;    /* A template number so we can id a filetype in docloc_offs, and index into All_General_Templates */
   char *printname;   /* Printable name for this kind of file (e.g. "RMAIL") */
@@ -177,43 +199,57 @@ typedef struct _Array_of_Field_Types {
 
 /* Prototypes */
 
-/* Create a new template, with an empty Template_Field_Info array.  
-   Make sure to strcpy all strings into malloced buffers */
-General_Template *create_template (char *printname, char *recognize, char *delimiter, 
+/**
+   Create a new template, with an empty Template_Field_Info array.
+   Make sure to strcpy all strings into malloced buffers
+*/
+General_Template *create_template (char *printname, char *recognize, char *delimiter,
                                    enum Action_Types action, enum Template_Types templatetype);
 
-/* Return the template_field_info pointer that has the included pointer */
+/**
+   Return the template_field_info pointer that has the included pointer
+*/
 Template_Field_Info *tfi_from_name (General_Template *template, char *fieldname);
 
-/* Return the field pointer (from the global "All_Fields") that has the included pointer */
+/**
+   Return the field pointer (from the global "All_Fields") that has the included pointer
+*/
 Field *field_from_name (char *fieldname);
 
-/* Add a new Template_Field_Info line to a template */
-void add_template_field_info (General_Template *template, Field *field, char *id_regexp, int id_index, 
+/**
+   Add a new Template_Field_Info line to a template
+*/
+void add_template_field_info (General_Template *template, Field *field, char *id_regexp, int id_index,
                               char **filter_regexp, int bias, int title_length);
 
-/* Free memory pointed to by template (including all sub-fields and strings in the data struct) */
+/**
+   Free memory pointed to by template (including all sub-fields and strings in the data struct)
+*/
 void free_template (General_Template *template);
 
-/* Create a field and add it to fieldArray, choosing the next fieldnum from the array 
-   and updating the Array's num_fields */
+/**
+   Create a field and add it to fieldArray, choosing the next fieldnum from the array
+   and updating the Array's num_fields
+*/
 void create_and_add_field (Array_of_Field_Types *fieldArray,
-                           char *printname, 
-			   enum Title_Defaults_Type titleDefault,
-                           void *(*parser)(char *fielddata, void *self, DB_UINT docnum), 
-                           GBuffer *(*deparser)(void *parseddata, void *self), 
+                           char *printname,
+                           enum Title_Defaults_Type titleDefault,
+                           void *(*parser)(char *fielddata, void *self, DB_UINT docnum),
+                           GBuffer *(*deparser)(void *parseddata, void *self),
                            void (*index_store)(void *parseddata,
                                                char *filename,
                                                int last_write_p),
-                           void *(*nextword)(void *parseddata, 
+                           void *(*nextword)(void *parseddata,
                                              int reset_p),
-                           void (*update_sims_word)(void *word, 
-                                                    Remem_Hash_Table *all_sims, 
+                           void (*update_sims_word)(void *word,
+                                                    Remem_Hash_Table *all_sims,
                                                     void *self,
                                                     Retrieval_Database_Info *rdi),
                            void (*cleanup_parsed)(void *parseddata));
 
-/* Print configuration stuff (mainly for debugging) */
+/**
+   Print configuration stuff (mainly for debugging)
+*/
 void print_config ();
 void print_field (Field *f);
 void print_template (General_Template *t);
@@ -221,4 +257,3 @@ void print_template_field_info (Template_Field_Info *tfi);
 Field *get_field_from_allfields(Array_of_Field_Types *aft, char *pname);
 
 #endif
-

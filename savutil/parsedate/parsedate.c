@@ -9,7 +9,7 @@
  *
  * Revision 1.1  84/09/01  15:01:30  wales
  * Initial revision
- * 
+ *
  * Copyright (c) 1984 by Richard B. Wales
  *
  * Purpose:
@@ -46,19 +46,19 @@
  *     struct parsedate *parsedate (date) char *date;
  *         Parse a character string representing a date and time into
  *         individual values in a "struct parsedate" data structure.
- *    
+ *
  *     compute_unixtime (pd) struct parsedate *pd;
  *         Given a mostly filled-in "struct parsedate", compute the day
  *         of the week and the internal UNIX representation of the date.
- *    
+ *
  *     break_down_unixtime (pd) struct parsedate *pd;
  *         Compute the date and time corresponding to the "unixtime" and
  *         "zone" values in a "struct parsedate".
- *    
+ *
  *     char *mail_date_string (pd) struct parsedate *pd;
  *         Generate a character string representing a date and time in
  *         the RFC822 (ARPANET mail standard) format.
- *    
+ *
  *     char *uucp_date_string (pd) struct parsedate *pd;
  *         Generate a character string representing a date and time in
  *         the UUCP mail format.
@@ -97,11 +97,12 @@ static int monthsize[] = { 0,31,28,31,30,31,30,31,31,30,31,30,31 };
 static char monthname[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
 static char dayname[]   = "SunMonTueWedThuFriSat";
 
-/* struct parsedate *parsedate (date) char *date;
- *     Analyze a character string representing a date and time.  The
- *     returned value points to a data structure with the desired
- *     information.  (NOTE:  The returned value points to static data
- *     whose contents are overwritten by each call.)
+/**
+   struct parsedate *parsedate (date) char *date;
+     Analyze a character string representing a date and time.  The
+     returned value points to a data structure with the desired
+     information.  (NOTE:  The returned value points to static data
+     whose contents are overwritten by each call.)
  */
 struct parsedate *
 parsedate (date)
@@ -139,27 +140,28 @@ parsedate (date)
      */
     year_save = date_ans.year; compute_unixtime (&date_ans);
     if (date_ans.error == NULL
-	&& (date_ans.year != year_save
-	    || (date_ans.month > 0 && date_ans.day < 0)
-	    || (date_ans.month < 0 && date_ans.day > 0)))
-	date_ans.error = date_inbuf;
+        && (date_ans.year != year_save
+            || (date_ans.month > 0 && date_ans.day < 0)
+            || (date_ans.month < 0 && date_ans.day > 0)))
+        date_ans.error = date_inbuf;
 
     return &date_ans;
 }
 
-/* compute_unixtime (pd) struct parsedate *pd;
- *     Given a mostly filled-in "struct parsedate", compute the day of
- *     the week and the internal UNIX representation of the date.
- *
- *     A year before 1600 will be rejected and replaced with -1.  A
- *     date from 1600 on which falls outside the range representable in
- *     internal UNIX form will still have the correct day of the week
- *     computed.
- *
- *     The day of the week is always computed on the assumption that the
- *     Gregorian calendar is in use.  Days of the week for dates in the
- *     far future may turn out to be incorrect if any changes are made
- *     to the calendar between now and then.
+/**
+   compute_unixtime (pd) struct parsedate *pd;
+      Given a mostly filled-in "struct parsedate", compute the day of
+      the week and the internal UNIX representation of the date.
+
+      A year before 1600 will be rejected and replaced with -1.  A
+      date from 1600 on which falls outside the range representable in
+      internal UNIX form will still have the correct day of the week
+      computed.
+
+      The day of the week is always computed on the assumption that the
+      Gregorian calendar is in use.  Days of the week for dates in the
+      far future may turn out to be incorrect if any changes are made
+      to the calendar between now and then.
  */
 void
 compute_unixtime (pd)
@@ -174,13 +176,13 @@ compute_unixtime (pd)
      * ber of days in February later on when computing the UNIX time).
      */
     if (pd->month > 0)
-    {	if      (pd->year < 0)        monthsize[2] = 29;
-	else if (pd->year %   4 != 0) monthsize[2] = 28;
-	else if (pd->year % 100 != 0) monthsize[2] = 29;
-	else if (pd->year % 400 != 0) monthsize[2] = 28;
-	else                          monthsize[2] = 29;
-	if (pd->day <= 0 || pd->day > monthsize[pd->month])
-	    pd->day = -1;
+    {   if      (pd->year < 0)        monthsize[2] = 29;
+        else if (pd->year %   4 != 0) monthsize[2] = 28;
+        else if (pd->year % 100 != 0) monthsize[2] = 29;
+        else if (pd->year % 400 != 0) monthsize[2] = 28;
+        else                          monthsize[2] = 29;
+        if (pd->day <= 0 || pd->day > monthsize[pd->month])
+            pd->day = -1;
     }
 
     /* Compute the day of the week.  The next several lines constitute a
@@ -188,44 +190,45 @@ compute_unixtime (pd)
      * day of the week (pd->c_weekday) is ignored here.
      */
     if (pd->year > 0 && pd->month > 0 && pd->day > 0)
-    {	if (pd->month >= 3) n = pd->year / 100,
-			    l = pd->year % 100;
-	else                n = (pd->year-1) / 100,
-			    l = (pd->year-1) % 100;
-	a = (26 * ((pd->month+9)%12 + 1) - 2) / 10;
-	weekday = (a+(l>>2)+(n>>2)+l-(n+n)+pd->day);
-	while (weekday < 0) weekday += 7;
-	pd->weekday = weekday % 7;
+    {   if (pd->month >= 3) n = pd->year / 100,
+                            l = pd->year % 100;
+        else                n = (pd->year-1) / 100,
+                            l = (pd->year-1) % 100;
+        a = (26 * ((pd->month+9)%12 + 1) - 2) / 10;
+        weekday = (a+(l>>2)+(n>>2)+l-(n+n)+pd->day);
+        while (weekday < 0) weekday += 7;
+        pd->weekday = weekday % 7;
     }
 
     /* Figure out the internal UNIX form of the date. */
     if (pd->year >= 1969 && pd->year <= 2038
-	&& pd->month > 0 && pd->day > 0
-	&& pd->hour >= 0 && pd->minute >= 0
-	&& pd->zone != -1 && pd->zone > -1440 && pd->zone < 1440)
-    {	pd->unixtime =
-	      SEC_PER_YEAR * (pd->year - 1970)
-	    + SEC_PER_DAY  * ((pd->year - 1969) / 4)
-	    /* month is taken care of later */
-	    + SEC_PER_DAY  * (pd->day - 1)
-	    + SEC_PER_HOUR * pd->hour
-	    + SEC_PER_MIN  * pd->minute
-	    /* seconds are taken care of later */
-	    - SEC_PER_MIN  * pd->zone;
-	if (pd->second >= 0)
-	    pd->unixtime += pd->second;
-	for (n = pd->month - 1; n > 0; n--)
-	    pd->unixtime += SEC_PER_DAY * monthsize[n];
-	if (pd->unixtime < 0) pd->unixtime = -1;
+        && pd->month > 0 && pd->day > 0
+        && pd->hour >= 0 && pd->minute >= 0
+        && pd->zone != -1 && pd->zone > -1440 && pd->zone < 1440)
+    {   pd->unixtime =
+              SEC_PER_YEAR * (pd->year - 1970)
+            + SEC_PER_DAY  * ((pd->year - 1969) / 4)
+            /* month is taken care of later */
+            + SEC_PER_DAY  * (pd->day - 1)
+            + SEC_PER_HOUR * pd->hour
+            + SEC_PER_MIN  * pd->minute
+            /* seconds are taken care of later */
+            - SEC_PER_MIN  * pd->zone;
+        if (pd->second >= 0)
+            pd->unixtime += pd->second;
+        for (n = pd->month - 1; n > 0; n--)
+            pd->unixtime += SEC_PER_DAY * monthsize[n];
+        if (pd->unixtime < 0) pd->unixtime = -1;
     }
     else pd->unixtime = -1;
 }
 
-/* break_down_unixtime (pd) struct parsedate *pd;
- *     Given the "unixtime" and "zone" fields of a "struct parsedate",
- *     compute the values of the "year", "month", "day", "hour", "min-
- *     ute", "second", and "weekday" fields.  The "dst" and "error"
- *     fields of the structure are not used or modified.
+/**
+   break_down_unixtime (pd) struct parsedate *pd;
+      Given the "unixtime" and "zone" fields of a "struct parsedate",
+      compute the values of the "year", "month", "day", "hour", "min-
+      ute", "second", and "weekday" fields.  The "dst" and "error"
+      fields of the structure are not used or modified.
  */
 void
 break_down_unixtime (pd)
@@ -235,12 +238,12 @@ break_down_unixtime (pd)
 
     /* Validate the "unixtime" and "zone" fields. */
     if (pd->unixtime < 0
-	|| pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
-    {	/* Sorry, can't do it. */
-	pd->year = -1; pd->month = -1; pd->day = -1;
-	pd->hour = -1; pd->minute = -1; pd->second = -1;
-	pd->weekday = -1;
-	return;
+        || pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
+    {   /* Sorry, can't do it. */
+        pd->year = -1; pd->month = -1; pd->day = -1;
+        pd->hour = -1; pd->minute = -1; pd->second = -1;
+        pd->weekday = -1;
+        return;
     }
 
     /* Even though "pd->unixtime" must be non-negative, and thus cannot
@@ -252,14 +255,14 @@ break_down_unixtime (pd)
      * "pd->zone" must represent a time-zone shift of less than a day.
      */
     if (pd->zone < 0 && pd->unixtime + SEC_PER_MIN * pd->zone < 0)
-    {	pd->year = 1969; pd->month = 12; pd->day = 31;
-	pd->weekday = 3;    /* Wednesday */
-	timevalue = pd->unixtime + SEC_PER_MIN * pd->zone + SEC_PER_DAY;
-	/* Note:  0 <= timevalue < SEC_PER_DAY */
-	pd->hour = timevalue / SEC_PER_HOUR;
-	pd->minute = (timevalue % SEC_PER_HOUR) / SEC_PER_MIN;
-	pd->second = timevalue % SEC_PER_MIN;
-	return;
+    {   pd->year = 1969; pd->month = 12; pd->day = 31;
+        pd->weekday = 3;    /* Wednesday */
+        timevalue = pd->unixtime + SEC_PER_MIN * pd->zone + SEC_PER_DAY;
+        /* Note:  0 <= timevalue < SEC_PER_DAY */
+        pd->hour = timevalue / SEC_PER_HOUR;
+        pd->minute = (timevalue % SEC_PER_HOUR) / SEC_PER_MIN;
+        pd->second = timevalue % SEC_PER_MIN;
+        return;
     }
 
     /* Handle the general case (local time is 1970 or later). */
@@ -273,18 +276,18 @@ break_down_unixtime (pd)
      * needed) . . .
      */
     for (m = 1970; ; m++)
-    {	n = (m%4==0) ? SEC_PER_YEAR+SEC_PER_DAY : SEC_PER_YEAR;
-	if (n > timevalue) break;
-	timevalue -= n;
+    {   n = (m%4==0) ? SEC_PER_YEAR+SEC_PER_DAY : SEC_PER_YEAR;
+        if (n > timevalue) break;
+        timevalue -= n;
     }
     pd->year = m;
     monthsize[2] = (m%4==0) ? 29 : 28;
 
     /* month . . . */
     for (m = 1; ; m++)
-    {	n = SEC_PER_DAY * monthsize[m];
-	if (n > timevalue) break;
-	timevalue -= n;
+    {   n = SEC_PER_DAY * monthsize[m];
+        if (n > timevalue) break;
+        timevalue -= n;
     }
     pd->month = m;
 
@@ -295,12 +298,13 @@ break_down_unixtime (pd)
     pd->second = timevalue % SEC_PER_MIN;
 }
 
-/* char *mail_date_string (pd) struct parsedate *pd;
- *     Generate a character string representing a date and time in the
- *     RFC822 (ARPANET mail standard) format.  A value of NULL is re-
- *     turned if "pd" does not contain all necessary data fields.
- *     (NOTE:  The returned value points to static data whose contents
- *     are overwritten by each call.)
+/**
+   char *mail_date_string (pd) struct parsedate *pd;
+      Generate a character string representing a date and time in the
+      RFC822 (ARPANET mail standard) format.  A value of NULL is re-
+      turned if "pd" does not contain all necessary data fields.
+      (NOTE:  The returned value points to static data whose contents
+      are overwritten by each call.)
  */
 char *
 mail_date_string (pd)
@@ -313,44 +317,45 @@ mail_date_string (pd)
 
     /* Make sure all required fields are present. */
     if (pd->year < 0 || pd->month < 0 || pd->day < 0
-	|| pd->hour < 0 || pd->minute < 0
-	|| pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
-	return NULL;		/* impossible to generate string */
+        || pd->hour < 0 || pd->minute < 0
+        || pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
+        return NULL;            /* impossible to generate string */
 
     /* Generate the answer string. */
     sprintf (answer,
-	     "%.3s, %d %.3s %d %02d:%02d",
-	     dayname + 3*pd->weekday,
-	     pd->day, monthname + 3*(pd->month-1),
-	     (pd->year >= 1960 && pd->year <= 1999)
-		 ? pd->year - 1900 : pd->year,
-	     pd->hour, pd->minute);
+             "%.3s, %d %.3s %d %02d:%02d",
+             dayname + 3*pd->weekday,
+             pd->day, monthname + 3*(pd->month-1),
+             (pd->year >= 1960 && pd->year <= 1999)
+                 ? pd->year - 1900 : pd->year,
+             pd->hour, pd->minute);
     c = answer + strlen (answer);
     if (pd->second >= 0) sprintf (c, ":%02d", pd->second), c += 3;
     *c++ = ' ';
     switch (pd->zone)
-    {	/* NOTE:  Only zone abbreviations in RFC822 are used here. */
-	case    0: strcpy (c, pd->dst ? "+0000" : "GMT");   break;
-	case -240: strcpy (c, pd->dst ? "EDT"   : "-0400"); break;
-	case -300: strcpy (c, pd->dst ? "CDT"   : "EST");   break;
-	case -360: strcpy (c, pd->dst ? "MDT"   : "CST");   break;
-	case -420: strcpy (c, pd->dst ? "PDT"   : "MST");   break;
-	case -480: strcpy (c, pd->dst ? "-0800" : "PST");   break;
-	default:
-	    if (pd->zone >= 0)
-		 sprintf (c, "+%02d%02d",  pd->zone/60,  pd->zone%60);
-	    else sprintf (c, "-%02d%02d", -pd->zone/60, -pd->zone%60);
+    {   /* NOTE:  Only zone abbreviations in RFC822 are used here. */
+        case    0: strcpy (c, pd->dst ? "+0000" : "GMT");   break;
+        case -240: strcpy (c, pd->dst ? "EDT"   : "-0400"); break;
+        case -300: strcpy (c, pd->dst ? "CDT"   : "EST");   break;
+        case -360: strcpy (c, pd->dst ? "MDT"   : "CST");   break;
+        case -420: strcpy (c, pd->dst ? "PDT"   : "MST");   break;
+        case -480: strcpy (c, pd->dst ? "-0800" : "PST");   break;
+        default:
+            if (pd->zone >= 0)
+                 sprintf (c, "+%02d%02d",  pd->zone/60,  pd->zone%60);
+            else sprintf (c, "-%02d%02d", -pd->zone/60, -pd->zone%60);
     }
 
     return answer;
 }
 
-/* char *uucp_date_string (pd) struct parsedate *pd;
- *     Generate a character string representing a date and time in the
- *     UUCP mail format.  A value of NULL is returned if "pd" does not
- *     contain all necessary data fields.  (NOTE:  The returned value
- *     points to static data whose contents are overwritten by each
- *     call.)
+/**
+   char *uucp_date_string (pd) struct parsedate *pd;
+      Generate a character string representing a date and time in the
+      UUCP mail format.  A value of NULL is returned if "pd" does not
+      contain all necessary data fields.  (NOTE:  The returned value
+      points to static data whose contents are overwritten by each
+      call.)
  */
 char *
 uucp_date_string (pd)
@@ -363,30 +368,30 @@ uucp_date_string (pd)
 
     /* Make sure all required fields are present. */
     if (pd->year < 0 || pd->month < 0 || pd->day < 0
-	|| pd->hour < 0 || pd->minute < 0
-	|| pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
-	return NULL;		/* impossible to generate string */
+        || pd->hour < 0 || pd->minute < 0
+        || pd->zone == -1 || pd->zone <= -1440 || pd->zone >= 1440)
+        return NULL;            /* impossible to generate string */
 
     /* Generate the answer string. */
     sprintf (answer,
-	     "%.3s %.3s %d %02d:%02d",
-	     dayname + 3*pd->weekday,
-	     monthname + 3*(pd->month-1), pd->day,
-	     pd->hour, pd->minute);
+             "%.3s %.3s %d %02d:%02d",
+             dayname + 3*pd->weekday,
+             monthname + 3*(pd->month-1), pd->day,
+             pd->hour, pd->minute);
     c = answer + strlen (answer);
     if (pd->second >= 0) sprintf (c, ":%02d", pd->second), c += 3;
     switch (pd->zone)
-    {	/* NOTE:  Only zone abbreviations in RFC822 are used here. */
-	case    0: strcpy (c, pd->dst ? "+0000" : "-GMT");   break;
-	case -240: strcpy (c, pd->dst ? "-EDT"  : "-0400"); break;
-	case -300: strcpy (c, pd->dst ? "-CDT"  : "-EST");   break;
-	case -360: strcpy (c, pd->dst ? "-MDT"  : "-CST");   break;
-	case -420: strcpy (c, pd->dst ? "-PDT"  : "-MST");   break;
-	case -480: strcpy (c, pd->dst ? "-0800" : "-PST");   break;
-	default:
-	    if (pd->zone >= 0)
-		 sprintf (c, "+%02d%02d",  pd->zone/60,  pd->zone%60);
-	    else sprintf (c, "-%02d%02d", -pd->zone/60, -pd->zone%60);
+    {   /* NOTE:  Only zone abbreviations in RFC822 are used here. */
+        case    0: strcpy (c, pd->dst ? "+0000" : "-GMT");   break;
+        case -240: strcpy (c, pd->dst ? "-EDT"  : "-0400"); break;
+        case -300: strcpy (c, pd->dst ? "-CDT"  : "-EST");   break;
+        case -360: strcpy (c, pd->dst ? "-MDT"  : "-CST");   break;
+        case -420: strcpy (c, pd->dst ? "-PDT"  : "-MST");   break;
+        case -480: strcpy (c, pd->dst ? "-0800" : "-PST");   break;
+        default:
+            if (pd->zone >= 0)
+                 sprintf (c, "+%02d%02d",  pd->zone/60,  pd->zone%60);
+            else sprintf (c, "-%02d%02d", -pd->zone/60, -pd->zone%60);
     }
     c = answer + strlen (answer);
     sprintf (c, " %d", pd->year);

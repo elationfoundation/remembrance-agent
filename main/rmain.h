@@ -44,12 +44,14 @@ USA.
 #define TITLE_LENGTH_MAX 1024
 #define RETRIEVAL_SEPERATOR_STRING "."
 
-/* Commands that can be entered in the retrieve command loop */
-enum Retrieve_Command {QUIT_COMMAND, 
-		       QUERY_COMMAND, 
-		       RETRIEVE_COMMAND, 
+/**
+   Commands that can be entered in the retrieve command loop
+*/
+enum Retrieve_Command {QUIT_COMMAND,
+                       QUERY_COMMAND,
+                       RETRIEVE_COMMAND,
                        LOCRETRIEVE_COMMAND,
-		       HELP_COMMAND,
+                       HELP_COMMAND,
                        SET_BIAS_COMMAND,
                        PRINT_BIASES,
                        USE_HANDSET_BIASES,
@@ -63,18 +65,20 @@ void get_query(GBuffer *query);
 void resetDocSims(Remem_Hash_Table *docSims);
 Remem_Hash_Table *initDocSims(int num_docs_total);
 
-/* Given a query and it's template, return a biased, sorted array */
+/**
+   Given a query and it's template, return a biased, sorted array
+*/
 Doc_Sim_Totals *rank_docs_for_fields(Remem_Hash_Table *total_sims,
-				     Remem_Hash_Table *all_sims, 
-				     Doc_Info *queryInfo, 
-				     General_Template *template,
-				     List_of_General_Templates *All_General_Templates, 
-				     Retrieval_Database_Info *rdi,
-				     int number_docs_being_printed,
-				     int *querybiases);
+                                     Remem_Hash_Table *all_sims,
+                                     Doc_Info *queryInfo,
+                                     General_Template *template,
+                                     List_of_General_Templates *All_General_Templates,
+                                     Retrieval_Database_Info *rdi,
+                                     int number_docs_being_printed,
+                                     int *querybiases);
 
-void bias_sims(Remem_Hash_Table *all_sims, 
-               List_of_General_Templates *All_General_Templates, 
+void bias_sims(Remem_Hash_Table *all_sims,
+               List_of_General_Templates *All_General_Templates,
                Field *thisfield,
                int *querybiases,
                Retrieval_Database_Info *rdi,
@@ -82,5 +86,3 @@ void bias_sims(Remem_Hash_Table *all_sims,
 
 void add_additional_to_doc_sim (Doc_Sim *thisSim, float additional, char *printname);
 #endif
-
-

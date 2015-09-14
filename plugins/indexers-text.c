@@ -45,15 +45,16 @@ USA.
 #include "conftemplates.h"
 
 
-/* Write wordvec file to disk, in directory dbdir with filename
+/**
+   Write wordvec file to disk, in directory dbdir with filename
    fnames.  If final_write_p == 1, close the files afterwards.  Free
    dvtree as you go.  write_text_index_file_and_free writes
    WORDVEC-OFFS and WORDVEC files, while index_store writes the DOCLEN
    file directly.
-   
+
    File format:
       Format for WORDVEC_FILE: doc/weight pairs for the wordcode specified
-      in the wordvec offset file.  No wordcode is listed here since it's 
+      in the wordvec offset file.  No wordcode is listed here since it's
       redundant.  Docnums are listed in reverse docnum order, 'cause that's
       easier to deal with in the indexing.
 
@@ -82,18 +83,17 @@ USA.
       document length (number words), in docnum order followed by
       fieldtype order.  Note that there might be missing document
       numbers or fields, since this is only for docs and fields with
-      text-type.  
+      text-type.
 
-      (DB_UINT)    (DB_UINT)       (DB_UINT)       
+      (DB_UINT)    (DB_UINT)       (DB_UINT)
       DOCNUM-1,    FIELDTYPE-1,    LENGTH-OF-DOC-1-FIELD-1,
       DOCNUM-1,    FIELDTYPE-2,    LENGTH-OF-DOC-1-FIELD-2,
       DOCNUM-2,    FIELDTYPE-1,    LENGTH-OF-DOC-2-FIELD-1,
       ...
 
   */
-
-void write_text_index_file_and_free (DV_Tree *dvtree, 
-                                     char *dbdir, 
+void write_text_index_file_and_free (DV_Tree *dvtree,
+                                     char *dbdir,
                                      char *wordvec_fname,
                                      char *wvoff_fname,
                                      int final_write_p) {
@@ -102,22 +102,22 @@ void write_text_index_file_and_free (DV_Tree *dvtree,
   DB_UINT wv_off;
   Doc_List *doc, *doc_next;
 
-  if (WORDVEC_FILE == NULL) 
+  if (WORDVEC_FILE == NULL)
     WORDVEC_FILE = open_or_die(dbdir, wordvec_fname, "w");
-  if (WVOFF_FILE == NULL) 
+  if (WVOFF_FILE == NULL)
     WVOFF_FILE = open_or_die(dbdir, wvoff_fname, "w");
 
   if (dvtree != NULL) {
-    
+
     /* Write to the left */
-    write_text_index_file_and_free (dvtree->left, dbdir, wordvec_fname, 
-				    wvoff_fname, 0);
-    
+    write_text_index_file_and_free (dvtree->left, dbdir, wordvec_fname,
+                                    wvoff_fname, 0);
+
     /* Write me */
     wv_off = (DB_UINT)ftell(WORDVEC_FILE);
     fwrite_big(dvtree->wordcode, sizeof(DB_UINT), 3, WVOFF_FILE);
     fwrite_big(&wv_off, sizeof(DB_UINT), 1, WVOFF_FILE);
-    
+
     doc = dvtree->documents;
     while (doc != NULL) {
       fwrite_big(&(doc->docnum), sizeof(DB_UINT), 1, WORDVEC_FILE);
@@ -126,9 +126,9 @@ void write_text_index_file_and_free (DV_Tree *dvtree,
       free(doc);
       doc = doc_next;
     }
-    
+
     /* Write to the right and fight fight fight */
-    write_text_index_file_and_free (dvtree->right, dbdir, wordvec_fname, wvoff_fname, 0);  
+    write_text_index_file_and_free (dvtree->right, dbdir, wordvec_fname, wvoff_fname, 0);
 
     free(dvtree);
   }
@@ -143,10 +143,12 @@ void write_text_index_file_and_free (DV_Tree *dvtree,
 
 
 
-/* write checkpoint files.  These are written as the filename with a .## 
-   after it, where ## is the number of this checkpoint.  */
-void checkpoint_text_index_file_and_free (DV_Tree *dvtree, 
-					  int checkpoint_number, char *dbdir) {
+/**
+   write checkpoint files.  These are written as the filename with a .##
+   after it, where ## is the number of this checkpoint.
+*/
+void checkpoint_text_index_file_and_free (DV_Tree *dvtree,
+                                          int checkpoint_number, char *dbdir) {
   char wordvec_fname[100];
   char wvoff_fname[100];
 
@@ -156,11 +158,12 @@ void checkpoint_text_index_file_and_free (DV_Tree *dvtree,
   /* Write it out.  Remember to always close it afterwards, 'cause you can't
      have more than one checkpoint dir open at a time the way we're doing it
      now.  (the "1" as the last arg closes it) */
-  write_text_index_file_and_free (dvtree, dbdir, 
- 				  wordvec_fname, wvoff_fname, 1);
+  write_text_index_file_and_free (dvtree, dbdir,
+                                  wordvec_fname, wvoff_fname, 1);
 }
 
-/* merge_text_index_file: Take a series of checkpointed wordvec and 
+/**
+  merge_text_index_file: Take a series of checkpointed wordvec and
    wordvec-offset files, and merge them into one file (doing a merge sort).
 */
 void merge_text_index_file (int checkpoints_written, char *dbdir) {
@@ -188,7 +191,7 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
   OUT_WORDVEC_FILE = open_or_die(dbdir, WORDVEC_FNAME, "w");
   OUT_WVOFF_FILE = open_or_die(dbdir, WVOFF_FNAME, "w");
 
-  /* Open each input file and read in the first wordcode from 
+  /* Open each input file and read in the first wordcode from
      the WVOFF files */
   for (i=0; i < checkpoints_written; i++) {
     sprintf(wordvec_fname, "%s.%.3d", WORDVEC_FNAME, i);
@@ -197,8 +200,8 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
     IN_WORDVEC_FILES[i] = open_or_die(dbdir, wordvec_fname, "r");
     IN_WVOFF_FILES[i] = open_or_die(dbdir, wvoff_fname, "r");
     wordcodes[i] = (DB_UINT *)malloc(sizeof(DB_UINT) * WORD_ENCODE_WIDTH);
-    fread_big (wordcodes[i], sizeof(DB_UINT), WORD_ENCODE_WIDTH, 
-	       IN_WVOFF_FILES[i]);
+    fread_big (wordcodes[i], sizeof(DB_UINT), WORD_ENCODE_WIDTH,
+               IN_WVOFF_FILES[i]);
     fread_big (&(in_offsets[i]), sizeof(DB_UINT), 1, IN_WVOFF_FILES[i]);
   }
 
@@ -209,15 +212,15 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
     /* Find out which wordcode is the minimum */
     for (i=0; i < checkpoints_written; i++) {
       if (!feof(IN_WVOFF_FILES[i])) {
-	alldone = 0;   /* not everyone's at eof yet */
-	if (!startedyet || (wordcode_cmp(wordcodes[i], minwc) <= 0)) {     
-	  /* new minimum word.  We're doing the <= 0 instead of -1
-	     so it'll still add in reverse doc order (which is what each 
-	     individual file is in) */
-	  startedyet = 1;
+        alldone = 0;   /* not everyone's at eof yet */
+        if (!startedyet || (wordcode_cmp(wordcodes[i], minwc) <= 0)) {
+          /* new minimum word.  We're doing the <= 0 instead of -1
+             so it'll still add in reverse doc order (which is what each
+             individual file is in) */
+          startedyet = 1;
           minwc_index = i;
-	  wordcode_cpy(minwc, wordcodes[i]); /* copy it in */
-	}
+          wordcode_cpy(minwc, wordcodes[i]); /* copy it in */
+        }
       }
     }
 
@@ -226,33 +229,33 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
       in_offset = in_offsets[minwc_index];
 
       /* compute offset to next entry and update
-	 wordcodes[minwc_index] with the next in line.  (use minwc for
-	 this round's minimum from here on.  On EOF we won't worry
-	 about the new wordvec (there isn't one), but want to make
-	 sure we get the end of the wordvec file as the next offset so
-	 we'll read in all the data. */
+         wordcodes[minwc_index] with the next in line.  (use minwc for
+         this round's minimum from here on.  On EOF we won't worry
+         about the new wordvec (there isn't one), but want to make
+         sure we get the end of the wordvec file as the next offset so
+         we'll read in all the data. */
       if (fread_big (wordcodes[minwc_index], sizeof(DB_UINT), WORD_ENCODE_WIDTH,
                      IN_WVOFF_FILES[minwc_index]) < WORD_ENCODE_WIDTH) {
         if (ferror(IN_WVOFF_FILES[minwc_index])) {
-          sprintf(errorstring, 
+          sprintf(errorstring,
                   "merge_text_index_file: got a short read on wordcodes[%d], previous in_offset = 0x%x",
                   minwc_index, in_offset);
           SavantError(EIO, errorstring);
         }
       }
-      
-      if (fread_big (&in_offsets[minwc_index], sizeof(DB_UINT), 1, 
+
+      if (fread_big (&in_offsets[minwc_index], sizeof(DB_UINT), 1,
                      IN_WVOFF_FILES[minwc_index]) < 1) {
         if (feof(IN_WVOFF_FILES[minwc_index])) {
           in_offset_next = (DB_UINT)ftell_end(IN_WORDVEC_FILES[minwc_index]);
         }
         else {
-          sprintf(errorstring, 
+          sprintf(errorstring,
                   "merge_text_index_file: got a short read on in_offsets[%d], previous in_offset = 0x%x",
                   minwc_index, in_offset);
           SavantError(EIO, errorstring);
         }
-      } 
+      }
       else {
         in_offset_next = in_offsets[minwc_index];
       }
@@ -262,19 +265,19 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
          same word might span checkpoints.  If so, just write the docs
          here. */
       if (!prev_minwc_written || wordcode_cmp(prev_minwc, minwc)) {
-	out_offset = (DB_UINT)ftell(OUT_WORDVEC_FILE);
-	fwrite_big (minwc, sizeof(DB_UINT),
-		    WORD_ENCODE_WIDTH, OUT_WVOFF_FILE);
-	fwrite_big (&out_offset, sizeof(DB_UINT),
-		    1, OUT_WVOFF_FILE);
+        out_offset = (DB_UINT)ftell(OUT_WORDVEC_FILE);
+        fwrite_big (minwc, sizeof(DB_UINT),
+                    WORD_ENCODE_WIDTH, OUT_WVOFF_FILE);
+        fwrite_big (&out_offset, sizeof(DB_UINT),
+                    1, OUT_WVOFF_FILE);
       }
       numwritten = fcpy_big (OUT_WORDVEC_FILE, 1, in_offset_next - in_offset,
-			       IN_WORDVEC_FILES[minwc_index]);
+                               IN_WORDVEC_FILES[minwc_index]);
 
       if (numwritten != in_offset_next - in_offset) {
-	sprintf(errorstring, "merge_text_index_file: only %d bytes written to wordvec file, should be %d", 
+        sprintf(errorstring, "merge_text_index_file: only %d bytes written to wordvec file, should be %d",
                 numwritten, in_offset_next - in_offset);
-	SavantError(EIO, errorstring);
+        SavantError(EIO, errorstring);
       }
 
       wordcode_cpy(prev_minwc, minwc);
@@ -313,33 +316,35 @@ void merge_text_index_file (int checkpoints_written, char *dbdir) {
 
 
 
-/* index_store: take whatever type is returned by the parser and
+/**
+   index_store: take whatever type is returned by the parser and
    stores it in the appropriate structure, for later writing to disk.
    It can also write some info to disk immediately if it needs to
    (e.g. for checkpointing so you don't run out of RAM).  Store stuff
-   statically so it can be used in subsequent calls.  If last_write_p == 1, 
-   make sure everything gets written to disk. 
+   statically so it can be used in subsequent calls.  If last_write_p == 1,
+   make sure everything gets written to disk.
 
-   Assumes we get documents one at a time in docnum order. */
+   Assumes we get documents one at a time in docnum order.
+*/
 
 void index_store_text (void *parsedata,   /* Type Text_Document_Field * */
-                        char *dbdir,       /* directory of the database we're 
-					      writing to */
-                        int last_write_p)  /* last_write_p == 1 if we should 
-					      finalize it to disk now */
+                        char *dbdir,       /* directory of the database we're
+                                              writing to */
+                        int last_write_p)  /* last_write_p == 1 if we should
+                                              finalize it to disk now */
 {
   static DV_Tree *dvtree = NULL;       /* The DV Tree being added to */
-  static int checkpoints_written = 0;  /* Number of checkpoint directories 
-					  written so far */
+  static int checkpoints_written = 0;  /* Number of checkpoint directories
+                                          written so far */
   static int mem_used_by_dvtree = 0;   /* Memory used by dvtree.  If
                                           this gets too big we write
                                           to disk and merge later */
-  static int we_are_done = 0;          /* Because we might be called to 
-					  finalize our last write several
-					  times (once per template that uses
-					  this method in fact), we use this 
-					  to insure we only do a merge and 
-					  write once at the end. */
+  static int we_are_done = 0;          /* Because we might be called to
+                                          finalize our last write several
+                                          times (once per template that uses
+                                          this method in fact), we use this
+                                          to insure we only do a merge and
+                                          write once at the end. */
   static FILE *DOCLEN_FILE = NULL;
   DV_Tree *tree = NULL;
   Text_Document_Field *pd;
@@ -347,12 +352,12 @@ void index_store_text (void *parsedata,   /* Type Text_Document_Field * */
 
   pd = (Text_Document_Field *)parsedata;
 
-  if (pd != NULL) 
+  if (pd != NULL)
     tree = pd->tree;
-  else 
+  else
     tree = NULL;
 
-  if (DOCLEN_FILE == NULL) 
+  if (DOCLEN_FILE == NULL)
     DOCLEN_FILE = open_or_die(dbdir, DOCLEN_FNAME, "w");
 
   /* Write DOCLEN_FILE info */
@@ -364,34 +369,34 @@ void index_store_text (void *parsedata,   /* Type Text_Document_Field * */
     fwrite_big(&(pd->length), sizeof(DB_UINT), 1, DOCLEN_FILE);
   }
 
-  if (!we_are_done) {  
-    mem_used_by_dvtree += 
+  if (!we_are_done) {
+    mem_used_by_dvtree +=
       add_document_to_dvtree(&dvtree, tree);
 
 
     if (last_write_p) {        /* Let's blow this thing and go home */
       if (checkpoints_written > 0) {
-	if (dvtree != NULL) {  /* write what's remaining */
-	  checkpoint_text_index_file_and_free (dvtree, checkpoints_written++, 
-					       dbdir);
-	}
-	merge_text_index_file (checkpoints_written, dbdir); 
-	dvtree = NULL;      /* it just got freed */
+        if (dvtree != NULL) {  /* write what's remaining */
+          checkpoint_text_index_file_and_free (dvtree, checkpoints_written++,
+                                               dbdir);
+        }
+        merge_text_index_file (checkpoints_written, dbdir);
+        dvtree = NULL;      /* it just got freed */
       }
       else {
-	write_text_index_file_and_free (dvtree, dbdir, WORDVEC_FNAME, 
-					WVOFF_FNAME, 1);
-	dvtree = NULL;
+        write_text_index_file_and_free (dvtree, dbdir, WORDVEC_FNAME,
+                                        WVOFF_FNAME, 1);
+        dvtree = NULL;
       }
       fclose(DOCLEN_FILE);
       we_are_done = 1;
     }
 
-    if (!last_write_p && 
-	dvtree != NULL &&
-	(mem_used_by_dvtree > MAX_DOC_MEMORY)) {
-      checkpoint_text_index_file_and_free (dvtree, checkpoints_written++, 
-					   dbdir);
+    if (!last_write_p &&
+        dvtree != NULL &&
+        (mem_used_by_dvtree > MAX_DOC_MEMORY)) {
+      checkpoint_text_index_file_and_free (dvtree, checkpoints_written++,
+                                           dbdir);
       mem_used_by_dvtree = 0;  /* it got freed */
       dvtree = NULL;
     }

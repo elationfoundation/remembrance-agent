@@ -42,34 +42,46 @@ USA.
 
 
 typedef struct
-{ 
+{
   char *value;
   int tail;    /* location of null-termination, so this == strlen(value) */
   int size;
 } GBuffer;
 
-/* after you definte a GrowBuffer, you should
-   init_GBuffer it, to set up the vars initially. */
+/**
+   after you definte a GrowBuffer, you should
+   init_GBuffer it, to set up the vars initially.
+*/
 void init_GBuffer(GBuffer *gbuf);
 
-/* after you init_GBuffer a GrowBuffer, don't
-   forget to free it. */
+/*
+  after you init_GBuffer a GrowBuffer, don't
+   forget to free it.
+*/
 void free_GBuffer(GBuffer *gbuf);
 
-/* return char * part of GrowBuffer 
-   (don't modify this string -- it might screw up our 
-   internal idea of how big this GB is) */
+/**
+   return char * part of GrowBuffer
+   (don't modify this string -- it might screw up our
+   internal idea of how big this GB is)
+*/
 char *strcast_GBuffer(GBuffer *src);
 
-/*  writes n chars of src into dest */
+/**
+   writes n chars of src into dest
+*/
 void strncat_GBuffer(GBuffer *dest, char *src, size_t n);
 
-/*  copy first n chars of src into the dest GrowBuffer */
+/**
+   copy first n chars of src into the dest GrowBuffer
+*/
 void strncpy_GBuffer(GBuffer *dest, char *src, size_t n);
 
-/* Chop out the first n characters of a growbuffer.  So
-   strnchop_GBuffer(gbuf, 4) changes gbuf from "Boogie Woogie to 
-   "ie Woogie". */
+/**
+   Chop out the first n characters of a growbuffer.  So
+   strnchop_GBuffer(gbuf, 4) changes gbuf from "Boogie Woogie to
+   "ie Woogie".
+*/
 void strnchop_GBuffer(GBuffer *dest, size_t n);
 
 #endif
